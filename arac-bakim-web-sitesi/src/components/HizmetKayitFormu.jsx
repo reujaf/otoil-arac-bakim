@@ -94,24 +94,24 @@ function HizmetKayitFormu() {
         sonrakiBakimTarihi: Timestamp.fromDate(sonrakiBakimTarihi),
       };
 
-      await addDoc(collection(db, 'hizmetler'), hizmetData);
+          await addDoc(collection(db, 'hizmetler'), hizmetData);
 
-      // Formu temizle
-      setFormData({
-        adSoyad: '',
-        plaka: '',
-        aracModeli: '',
-        hizmetTarihi: '',
-        yapilanIslemler: '',
-        alınanUcret: '',
-      });
-      setSuccessMessage('Hizmet kaydı başarıyla oluşturuldu!');
-      setLoading(false);
+          // Formu temizle
+          setFormData({
+            adSoyad: '',
+            plaka: '',
+            aracModeli: '',
+            hizmetTarihi: '',
+            yapilanIslemler: '',
+            alınanUcret: '',
+          });
+          setSuccessMessage('Hizmet kaydı başarıyla oluşturuldu!');
+          setLoading(false);
 
-      // Başarı mesajını 3 saniye sonra kaldır
-      setTimeout(() => {
-        setSuccessMessage('');
-      }, 3000);
+          // Başarı mesajını 2 saniye sonra kaldır
+          setTimeout(() => {
+            setSuccessMessage('');
+          }, 2000);
     } catch (error) {
       console.error('Kayıt hatası:', error);
       setLoading(false);
@@ -119,22 +119,44 @@ function HizmetKayitFormu() {
     }
   };
 
-  return (
-    <div>
-      <div className="max-w-4xl mx-auto">
-        <h2 className="text-3xl font-bold text-gray-900 mb-8">Yeni Hizmet Kaydı</h2>
-        
-        <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-lg px-8 pt-8 pb-8 border border-gray-100">
+      return (
+        <div>
+          {/* Başarı Modal */}
           {successMessage && (
-            <div className="mb-6 bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg">
-              {successMessage}
+            <div className="fixed inset-0 bg-gray-900 bg-opacity-50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+              <div className="bg-white rounded-xl shadow-2xl p-8 max-w-md w-full text-center animate-fade-in">
+                <div className="mb-4">
+                  <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100">
+                    <svg
+                      className="h-8 w-8 text-green-600"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                  </div>
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">Başarılı!</h3>
+                <p className="text-gray-600">{successMessage}</p>
+              </div>
             </div>
           )}
-          {loading && (
-            <div className="mb-6 bg-blue-50 border border-blue-200 text-blue-800 px-4 py-3 rounded-lg">
-              İşlem yapılıyor, lütfen bekleyin...
-            </div>
-          )}
+
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-3xl font-bold text-gray-900 mb-8">Yeni Hizmet Kaydı</h2>
+
+            <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-lg px-8 pt-8 pb-8 border border-gray-100">
+              {loading && (
+                <div className="mb-6 bg-blue-50 border border-blue-200 text-blue-800 px-4 py-3 rounded-lg">
+                  İşlem yapılıyor, lütfen bekleyin...
+                </div>
+              )}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Ad Soyad */}
             <div className="md:col-span-2">
@@ -214,6 +236,8 @@ function HizmetKayitFormu() {
                 name="alınanUcret"
                 value={formData.alınanUcret}
                 onChange={handleChange}
+                inputMode="numeric"
+                pattern="[0-9.,]*"
                 required
                 className="shadow-sm appearance-none border border-gray-300 rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 placeholder="0,00"
