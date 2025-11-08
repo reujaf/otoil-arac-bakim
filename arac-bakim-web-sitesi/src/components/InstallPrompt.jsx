@@ -3,72 +3,45 @@ import { useState, useEffect } from 'react';
 function InstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [showPrompt, setShowPrompt] = useState(false);
-  const [isInstalled, setIsInstalled] = useState(false);
 
   useEffect(() => {
-    // Uygulamanın zaten kurulu olup olmadığını kontrol et
+    // Uygulamanın standalone modda açılıp açılmadığını kontrol et
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
     const isInStandaloneMode = ('standalone' in window.navigator) && window.navigator.standalone;
     
+    // Eğer standalone modda açılmışsa (kendi uygulaması olarak), banner'ı gösterme
     if (isStandalone || isInStandaloneMode) {
-      setIsInstalled(true);
       return;
     }
 
+    // Browser'dan açılıyorsa banner'ı göster
     // LocalStorage'dan kurulum durumunu kontrol et
     const installDismissed = localStorage.getItem('installPromptDismissed');
-    let shouldShow = true;
-    
     if (installDismissed) {
       const dismissedTime = parseInt(installDismissed, 10);
       const daysSinceDismissed = (Date.now() - dismissedTime) / (1000 * 60 * 60 * 24);
       // 7 günden az süre geçtiyse tekrar gösterme
       if (daysSinceDismissed < 7) {
-        shouldShow = false;
+        return;
       }
     }
 
-    // PWA install prompt event'ini dinle
+    // PWA install prompt event'ini dinle (varsa kullanılacak)
     const handleBeforeInstallPrompt = (e) => {
       // Varsayılan prompt'u engelle
       e.preventDefault();
       // Event'i sakla
       setDeferredPrompt(e);
-      // LocalStorage kontrolü yoksa göster
-      if (shouldShow) {
-        setShowPrompt(true);
-      }
-    };
-
-    // Uygulama kurulduğunda
-    const handleAppInstalled = () => {
-      setIsInstalled(true);
-      setShowPrompt(false);
-      setDeferredPrompt(null);
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    window.addEventListener('appinstalled', handleAppInstalled);
 
-    // iOS için özel kontrol veya beforeinstallprompt gelmezse
-    let timeoutId;
-    if (isIOS && !isInStandaloneMode && shouldShow) {
-      // iOS'ta beforeinstallprompt event'i gelmez, manuel göster
-      timeoutId = setTimeout(() => {
-        setShowPrompt(true);
-      }, 2000);
-    } else if (!isIOS && shouldShow) {
-      // Desktop için de bir süre sonra göster (beforeinstallprompt gelmeyebilir)
-      timeoutId = setTimeout(() => {
-        setShowPrompt(true);
-      }, 3000);
-    }
+    // Banner'ı göster (browser'dan açıldığı için)
+    setShowPrompt(true);
 
     return () => {
-      if (timeoutId) clearTimeout(timeoutId);
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-      window.removeEventListener('appinstalled', handleAppInstalled);
     };
   }, []);
 
@@ -115,11 +88,6 @@ function InstallPrompt() {
     // LocalStorage'a dismiss zamanını kaydet
     localStorage.setItem('installPromptDismissed', Date.now().toString());
   };
-
-  // Uygulama zaten kuruluysa hiçbir şey gösterme
-  if (isInstalled) {
-    return null;
-  }
 
   // Prompt gösterilmeyecekse hiçbir şey gösterme
   if (!showPrompt) {
