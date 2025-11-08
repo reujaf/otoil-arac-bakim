@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
 import Bildirimler from '../components/Bildirimler';
 import BottomNavigation from '../components/BottomNavigation';
+import InstallPrompt from '../components/InstallPrompt';
 import logo from '../assets/otoil-logo.png';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -720,6 +721,7 @@ function BakimMerkezi() {
         </div>
       )}
       <BottomNavigation />
+      <InstallPrompt />
     </div>
   );
 }

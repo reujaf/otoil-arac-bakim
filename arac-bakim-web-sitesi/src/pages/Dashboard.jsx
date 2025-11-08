@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import Bildirimler from '../components/Bildirimler';
 import BottomNavigation from '../components/BottomNavigation';
+import InstallPrompt from '../components/InstallPrompt';
 import logo from '../assets/otoil-logo.png';
 
 function Dashboard() {
@@ -340,6 +341,7 @@ function Dashboard() {
         </div>
       )}
       <BottomNavigation />
+      <InstallPrompt />
     </div>
   );
 }

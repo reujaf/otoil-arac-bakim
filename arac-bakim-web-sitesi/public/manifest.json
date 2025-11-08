@@ -4,8 +4,8 @@
   "description": "Müşteri bakımlarınızı kolayca yönetin, takip edin ve raporlayın",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#2563eb",
-  "theme_color": "#2563eb",
+  "background_color": "#26a9e0",
+  "theme_color": "#26a9e0",
   "orientation": "portrait-primary",
   "icons": [
     {
