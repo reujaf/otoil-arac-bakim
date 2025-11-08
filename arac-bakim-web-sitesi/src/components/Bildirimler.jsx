@@ -61,15 +61,15 @@ function Bildirimler({ onBildirimSayisiDegis, onBildirimTikla }) {
         const birHaftaSonra = new Date(bugun);
         birHaftaSonra.setDate(birHaftaSonra.getDate() + 7);
 
-        // Bildirim gerektiren kayıtları filtrele
+        // Bildirim gerektiren kayıtları filtrele (sadece yaklaşan bakımlar, geçmiş olanlar hariç)
         const bildirimListesi = hizmetListesi.filter((hizmet) => {
           if (!hizmet.sonrakiBakimTarihi) return false;
 
           const sonrakiBakimTarihi = hizmet.sonrakiBakimTarihi.toDate();
           sonrakiBakimTarihi.setHours(0, 0, 0, 0);
 
-          // Tarihi geçmiş veya 1 hafta içinde olan kayıtlar
-          return sonrakiBakimTarihi <= birHaftaSonra;
+          // Sadece bugün ve 1 hafta içinde olan kayıtlar (geçmiş olanlar hariç)
+          return sonrakiBakimTarihi >= bugun && sonrakiBakimTarihi <= birHaftaSonra;
         });
 
         setBildirimler(bildirimListesi);
@@ -100,6 +100,18 @@ function Bildirimler({ onBildirimSayisiDegis, onBildirimTikla }) {
       month: 'long',
       day: 'numeric',
     });
+  };
+
+  // Müşteri adını al (eski ve yeni format desteği)
+  const getMusteriAdi = (hizmet) => {
+    if (hizmet.adSoyad) {
+      return hizmet.adSoyad;
+    }
+    // Eski format desteği
+    if (hizmet.isim || hizmet.soyisim) {
+      return `${hizmet.isim || ''} ${hizmet.soyisim || ''}`.trim();
+    }
+    return '-';
   };
 
   const getBildirimDurumu = (sonrakiBakimTarihi) => {
@@ -153,52 +165,45 @@ function Bildirimler({ onBildirimSayisiDegis, onBildirimTikla }) {
     );
   }
 
-  return (
-    <div>
-      <div className="space-y-4">
-        {bildirimler.map((hizmet) => {
-          const durum = getBildirimDurumu(hizmet.sonrakiBakimTarihi);
-          const okunmamis = !okunmusBildirimler.has(hizmet.id);
-          return (
-            <div
-              key={hizmet.id}
-              className={`bg-white border-l-4 ${
-                durum.className.includes('red') ? 'border-red-500' : 
-                durum.className.includes('orange') ? 'border-orange-500' : 
-                'border-yellow-500'
-              } rounded-xl shadow-md cursor-pointer hover:shadow-lg transition-all p-5 ${okunmamis ? 'ring-2 ring-blue-300' : ''}`}
-              onClick={() => handleBildirimOkundu(hizmet.id)}
-            >
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center space-x-2 mb-2">
-                    {okunmamis && (
-                      <span className="w-2 h-2 bg-red-500 rounded-full"></span>
-                    )}
-                    <h4 className="font-bold text-lg text-gray-900">
-                      {hizmet.plaka} - {hizmet.isim} {hizmet.soyisim}
-                    </h4>
-                  </div>
-                  <p className={`text-sm font-semibold mb-2 ${
-                    durum.className.includes('red') ? 'text-red-800' : 
-                    durum.className.includes('orange') ? 'text-orange-800' : 
-                    'text-yellow-800'
-                  }`}>
-                    {durum.text}
-                  </p>
-                  <div className="text-sm text-gray-600 space-y-1">
-                    <p>Son Bakım: {formatDate(hizmet.hizmetTarihi)}</p>
-                    <p>Sonraki Bakım: {formatDate(hizmet.sonrakiBakimTarihi)}</p>
-                    <p className="text-gray-500 mt-2">Tıklayarak Bakım Merkezi'ne gidin</p>
+      return (
+        <div>
+          <div className="space-y-2">
+            {bildirimler.map((hizmet) => {
+              const durum = getBildirimDurumu(hizmet.sonrakiBakimTarihi);
+              const okunmamis = !okunmusBildirimler.has(hizmet.id);
+              return (
+                <div
+                  key={hizmet.id}
+                  className={`bg-white border-l-4 ${
+                    durum.className.includes('red') ? 'border-red-500' :
+                    durum.className.includes('orange') ? 'border-orange-500' :
+                    'border-yellow-500'
+                  } rounded-lg shadow-sm cursor-pointer hover:shadow-md transition-all p-3 ${okunmamis ? 'ring-1 ring-blue-300' : ''}`}
+                  onClick={() => handleBildirimOkundu(hizmet.id)}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2 flex-1 min-w-0">
+                      {okunmamis && (
+                        <span className="w-2 h-2 bg-red-500 rounded-full flex-shrink-0"></span>
+                      )}
+                      <h4 className="font-semibold text-sm text-gray-900 truncate">
+                        {hizmet.plaka} - {getMusteriAdi(hizmet)}
+                      </h4>
+                    </div>
+                    <span className={`text-xs font-semibold px-2 py-1 rounded ${
+                      durum.className.includes('red') ? 'bg-red-100 text-red-800' :
+                      durum.className.includes('orange') ? 'bg-orange-100 text-orange-800' :
+                      'bg-yellow-100 text-yellow-800'
+                    } flex-shrink-0 ml-2`}>
+                      {durum.text}
+                    </span>
                   </div>
                 </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
+              );
+            })}
+          </div>
+        </div>
+      );
 }
 
 export default Bildirimler;

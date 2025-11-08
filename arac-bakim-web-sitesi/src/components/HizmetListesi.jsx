@@ -10,16 +10,17 @@ function HizmetListesi() {
   const [hizmetler, setHizmetler] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedHizmet, setSelectedHizmet] = useState(null);
+  const [aramaMetni, setAramaMetni] = useState('');
 
   useEffect(() => {
     const user = auth.currentUser;
     if (!user) return;
 
-    // Kullanıcının kayıtlarını çek
+    // Kullanıcının kayıtlarını çek - en son eklenen en üstte
     const q = query(
       collection(db, 'hizmetler'),
       where('kullaniciId', '==', user.uid),
-      orderBy('hizmetTarihi', 'desc')
+      orderBy('olusturmaTarihi', 'desc')
     );
 
     const unsubscribe = onSnapshot(
@@ -55,6 +56,29 @@ function HizmetListesi() {
     if (!timestamp) return '-';
     const date = timestamp.toDate();
     return date.toLocaleDateString('tr-TR');
+  };
+
+  // Müşteri adını al (eski ve yeni format desteği)
+  const getMusteriAdi = (hizmet) => {
+    if (hizmet.adSoyad) {
+      return hizmet.adSoyad;
+    }
+    // Eski format desteği
+    if (hizmet.isim || hizmet.soyisim) {
+      return `${hizmet.isim || ''} ${hizmet.soyisim || ''}`.trim();
+    }
+    return '-';
+  };
+
+  // Fiyatı Türk formatında formatla
+  const formatFiyat = (ucret) => {
+    if (!ucret && ucret !== 0) return '0,00';
+    const numValue = typeof ucret === 'number' ? ucret : parseFloat(ucret);
+    if (isNaN(numValue)) return '0,00';
+    return numValue.toLocaleString('tr-TR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
   };
 
   // Türkçe karakterleri ASCII karakterlere çevir (PDF için)
@@ -131,13 +155,14 @@ function HizmetListesi() {
       doc.text(tarihText, pageWidth - 30 - tarihWidth, startY);
       
       // Tablo verileri - Türkçe karakterleri ASCII'ye çevir
+      const musteriAdi = getMusteriAdi(hizmet);
       const tableData = [
-        ['Musteri Adi Soyadi', `${turkceKarakterCevir(hizmet.isim || '')} ${turkceKarakterCevir(hizmet.soyisim || '')}`],
+        ['Musteri Adi Soyadi', turkceKarakterCevir(musteriAdi)],
         ['Plaka', turkceKarakterCevir(hizmet.plaka || '')],
         ['Arac Modeli', turkceKarakterCevir(hizmet.aracModeli || '')],
         ['Hizmet Tarihi', formatDateShort(hizmet.hizmetTarihi)],
         ['Yapilan Islemler', turkceKarakterCevir(hizmet.yapilanIslemler || '')],
-        ['Alinan Ucret', `${hizmet.alınanUcret?.toFixed(2) || '0.00'} TL`],
+        ['Alinan Ucret', `${formatFiyat(hizmet.alınanUcret)} TL`],
       ];
 
       // Modern tablo tasarımı
@@ -204,18 +229,91 @@ function HizmetListesi() {
     );
   }
 
+  // Arama fonksiyonu
+  const filtrelenmisHizmetler = hizmetler.filter((hizmet) => {
+    if (!aramaMetni) return true;
+    const arama = aramaMetni.toLowerCase();
+    const plaka = (hizmet.plaka || '').toLowerCase();
+    const musteriAdi = getMusteriAdi(hizmet).toLowerCase();
+    
+    return plaka.includes(arama) || musteriAdi.includes(arama);
+  });
+
   return (
     <div>
       <div className="max-w-7xl mx-auto">
-        <h2 className="text-3xl font-bold text-gray-900 mb-8">Hizmet Kayıtları</h2>
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
+          <h2 className="text-3xl font-bold text-gray-900">Hizmet Kayıtları</h2>
+          
+          {/* Arama Kutusu */}
+          <div className="relative w-full md:w-80">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <svg
+                className="h-5 w-5 text-gray-400"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </div>
+            <input
+              type="text"
+              value={aramaMetni}
+              onChange={(e) => setAramaMetni(e.target.value)}
+              placeholder="Plaka veya müşteri adı ile ara..."
+              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+            />
+            {aramaMetni && (
+              <button
+                onClick={() => setAramaMetni('')}
+                className="absolute inset-y-0 right-0 pr-3 flex items-center"
+              >
+                <svg
+                  className="h-5 w-5 text-gray-400 hover:text-gray-600"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Arama sonuç sayısı */}
+        {aramaMetni && (
+          <div className="mb-4 text-sm text-gray-600">
+            {filtrelenmisHizmetler.length} kayıt bulundu
+          </div>
+        )}
 
         {hizmetler.length === 0 ? (
           <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-12 text-center">
             <p className="text-gray-500 text-lg">Henüz hizmet kaydı bulunmamaktadır.</p>
           </div>
+        ) : filtrelenmisHizmetler.length === 0 ? (
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-12 text-center">
+            <p className="text-gray-500 text-lg">Arama kriterinize uygun kayıt bulunamadı.</p>
+            <button
+              onClick={() => setAramaMetni('')}
+              className="mt-4 text-blue-600 hover:text-blue-700 font-medium"
+            >
+              Aramayı temizle
+            </button>
+          </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {hizmetler.map((hizmet) => (
+            {filtrelenmisHizmetler.map((hizmet) => (
               <div
                 key={hizmet.id}
                 className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 hover:shadow-xl transition-shadow"
@@ -223,7 +321,7 @@ function HizmetListesi() {
                 <div className="flex justify-between items-start mb-4">
                   <div>
                     <h3 className="text-lg font-bold text-gray-900 mb-1">{hizmet.plaka}</h3>
-                    <p className="text-sm text-gray-600">{hizmet.isim} {hizmet.soyisim}</p>
+                    <p className="text-sm text-gray-600">{getMusteriAdi(hizmet)}</p>
                   </div>
                   <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
                     {formatDate(hizmet.hizmetTarihi)}
@@ -238,7 +336,7 @@ function HizmetListesi() {
                     <span className="font-semibold">İşlemler:</span> {hizmet.yapilanIslemler}
                   </p>
                   <p className="text-sm text-gray-700 mt-2">
-                    <span className="font-semibold">Ücret:</span> {hizmet.alınanUcret?.toFixed(2)} ₺
+                    <span className="font-semibold">Ücret:</span> {formatFiyat(hizmet.alınanUcret)} ₺
                   </p>
                 </div>
 
@@ -267,7 +365,7 @@ function HizmetListesi() {
             <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
               <div className="p-6">
                 {(() => {
-                  const hizmet = hizmetler.find((h) => h.id === selectedHizmet);
+                  const hizmet = filtrelenmisHizmetler.find((h) => h.id === selectedHizmet) || hizmetler.find((h) => h.id === selectedHizmet);
                   if (!hizmet) return null;
                   return (
                     <div>
@@ -283,7 +381,7 @@ function HizmetListesi() {
                       <div className="space-y-4">
                         <div className="bg-gray-50 rounded-lg p-4">
                           <span className="text-sm text-gray-600 font-medium">Müşteri</span>
-                          <p className="text-lg text-gray-900 mt-1">{hizmet.isim} {hizmet.soyisim}</p>
+                          <p className="text-lg text-gray-900 mt-1">{getMusteriAdi(hizmet)}</p>
                         </div>
                         <div className="bg-gray-50 rounded-lg p-4">
                           <span className="text-sm text-gray-600 font-medium">Plaka</span>
@@ -303,7 +401,7 @@ function HizmetListesi() {
                         </div>
                         <div className="bg-blue-50 rounded-lg p-4">
                           <span className="text-sm text-blue-600 font-medium">Alınan Ücret</span>
-                          <p className="text-xl font-bold text-blue-900 mt-1">{hizmet.alınanUcret?.toFixed(2)} ₺</p>
+                          <p className="text-xl font-bold text-blue-900 mt-1">{formatFiyat(hizmet.alınanUcret)} ₺</p>
                         </div>
                       </div>
                       <div className="mt-6 flex justify-end">

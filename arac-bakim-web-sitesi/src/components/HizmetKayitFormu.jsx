@@ -4,8 +4,7 @@ import { collection, addDoc, Timestamp } from 'firebase/firestore';
 
 function HizmetKayitFormu() {
   const [formData, setFormData] = useState({
-    isim: '',
-    soyisim: '',
+    adSoyad: '',
     plaka: '',
     aracModeli: '',
     hizmetTarihi: '',
@@ -15,8 +14,48 @@ function HizmetKayitFormu() {
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
 
+  const formatFiyat = (value) => {
+    // Sadece rakam ve virgül kabul et
+    let cleaned = value.replace(/[^\d,]/g, '');
+    
+    // Virgülden sonra maksimum 2 rakam
+    const parts = cleaned.split(',');
+    if (parts.length > 1) {
+      cleaned = parts[0] + ',' + parts[1].substring(0, 2);
+    }
+    
+    if (!cleaned) return '';
+    
+    // Virgülü geçici olarak kaldır ve sayıya çevir
+    const numStr = parts[0].replace(/\./g, ''); // Noktaları kaldır
+    if (!numStr) return cleaned;
+    
+    const numValue = parseFloat(numStr);
+    
+    if (isNaN(numValue) || numValue < 0) return cleaned;
+    
+    // Tam sayı kısmını binlik ayırıcı ile formatla
+    const formattedTamSayi = numValue.toLocaleString('tr-TR');
+    
+    // Eğer virgül varsa, ondalık kısmı ekle
+    if (parts.length > 1) {
+      const ondalik = parts[1].padEnd(2, '0').substring(0, 2);
+      return formattedTamSayi + ',' + ondalik;
+    }
+    
+    return formattedTamSayi;
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
+    
+    // Fiyat alanı için özel formatlama
+    if (name === 'alınanUcret') {
+      const formatted = formatFiyat(value);
+      setFormData({ ...formData, [name]: formatted });
+      return;
+    }
+    
     setFormData({ ...formData, [name]: value });
   };
 
@@ -38,15 +77,18 @@ function HizmetKayitFormu() {
       const sonrakiBakimTarihi = new Date(hizmetTarihiObj);
       sonrakiBakimTarihi.setMonth(sonrakiBakimTarihi.getMonth() + 6);
 
+      // Fiyat değerini temizle ve parse et (Türk formatı: 1.500,00 -> 1500.00)
+      const ucretDegeri = formData.alınanUcret.toString().replace(/\./g, '').replace(',', '.');
+      const ucret = parseFloat(ucretDegeri) || 0;
+
       // Firestore'a kaydet
       const hizmetData = {
-        isim: formData.isim,
-        soyisim: formData.soyisim,
+        adSoyad: formData.adSoyad.trim(),
         plaka: formData.plaka.toUpperCase(),
         aracModeli: formData.aracModeli,
         hizmetTarihi: Timestamp.fromDate(hizmetTarihiObj),
         yapilanIslemler: formData.yapilanIslemler,
-        alınanUcret: parseFloat(formData.alınanUcret),
+        alınanUcret: ucret,
         kullaniciId: user.uid,
         olusturmaTarihi: Timestamp.now(),
         sonrakiBakimTarihi: Timestamp.fromDate(sonrakiBakimTarihi),
@@ -56,8 +98,7 @@ function HizmetKayitFormu() {
 
       // Formu temizle
       setFormData({
-        isim: '',
-        soyisim: '',
+        adSoyad: '',
         plaka: '',
         aracModeli: '',
         hizmetTarihi: '',
@@ -95,37 +136,20 @@ function HizmetKayitFormu() {
             </div>
           )}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* İsim */}
-            <div>
-              <label htmlFor="isim" className="block text-gray-700 text-sm font-bold mb-2">
-                İsim *
+            {/* Ad Soyad */}
+            <div className="md:col-span-2">
+              <label htmlFor="adSoyad" className="block text-gray-700 text-sm font-bold mb-2">
+                Ad Soyad *
               </label>
               <input
                 type="text"
-                id="isim"
-                name="isim"
-                value={formData.isim}
+                id="adSoyad"
+                name="adSoyad"
+                value={formData.adSoyad}
                 onChange={handleChange}
                 required
                 className="shadow-sm appearance-none border border-gray-300 rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                placeholder="Müşteri adı"
-              />
-            </div>
-
-            {/* Soyisim */}
-            <div>
-              <label htmlFor="soyisim" className="block text-gray-700 text-sm font-bold mb-2">
-                Soyisim *
-              </label>
-              <input
-                type="text"
-                id="soyisim"
-                name="soyisim"
-                value={formData.soyisim}
-                onChange={handleChange}
-                required
-                className="shadow-sm appearance-none border border-gray-300 rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                placeholder="Müşteri soyadı"
+                placeholder="Müşteri adı soyadı"
               />
             </div>
 
@@ -141,7 +165,7 @@ function HizmetKayitFormu() {
                 value={formData.plaka}
                 onChange={handleChange}
                 required
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline uppercase"
+                className="shadow-sm appearance-none border border-gray-300 rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all uppercase"
                 placeholder="34 ABC 123"
               />
             </div>
@@ -185,16 +209,14 @@ function HizmetKayitFormu() {
                 Alınan Ücret (₺) *
               </label>
               <input
-                type="number"
+                type="text"
                 id="alınanUcret"
                 name="alınanUcret"
                 value={formData.alınanUcret}
                 onChange={handleChange}
                 required
-                min="0"
-                step="0.01"
                 className="shadow-sm appearance-none border border-gray-300 rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                placeholder="0.00"
+                placeholder="0,00"
               />
             </div>
           </div>

@@ -3,7 +3,8 @@ import { useEffect, useState } from 'react';
 import { auth } from './firebaseConfig';
 import { onAuthStateChanged } from 'firebase/auth';
 import LoginPage from './pages/LoginPage';
-import HomePage from './pages/HomePage';
+import Dashboard from './pages/Dashboard';
+import KayitEkle from './pages/KayitEkle';
 import BakimMerkezi from './pages/BakimMerkezi';
 import ProtectedRoute from './components/ProtectedRoute';
 
@@ -39,7 +40,15 @@ function App() {
           path="/"
           element={
             <ProtectedRoute>
-              <HomePage />
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/kayit-ekle"
+          element={
+            <ProtectedRoute>
+              <KayitEkle />
             </ProtectedRoute>
           }
         />
