@@ -153,11 +153,6 @@ function HizmetKayitFormu() {
             <h2 className="text-3xl font-bold text-gray-900 mb-8">Yeni Hizmet Kaydı</h2>
 
             <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-lg px-8 pt-8 pb-8 border border-gray-100">
-              {loading && (
-                <div className="mb-6 bg-blue-50 border border-blue-200 text-blue-800 px-4 py-3 rounded-lg">
-                  İşlem yapılıyor, lütfen bekleyin...
-                </div>
-              )}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Ad Soyad */}
             <div className="md:col-span-2">
