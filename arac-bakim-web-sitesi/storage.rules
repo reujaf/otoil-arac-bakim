@@ -1,0 +1,16 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Araç fotoğrafları - kullanıcı sadece kendi fotoğraflarını yükleyebilir
+    match /arac-fotolari/{allPaths=**} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.resource.size < 5 * 1024 * 1024; // 5MB limit
+    }
+    // Hizmet formları PDF'leri - kullanıcı PDF oluşturabilir ve okuyabilir
+    match /hizmet-formlari/{allPaths=**} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.resource.size < 10 * 1024 * 1024; // 10MB limit
+    }
+  }
+}
+
