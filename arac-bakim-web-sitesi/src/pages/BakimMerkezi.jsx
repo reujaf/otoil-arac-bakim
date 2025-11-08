@@ -263,9 +263,50 @@ function BakimMerkezi() {
         doc.text('www.otoil.com | info@otoil.com', 14, pageHeight - 18);
       }
 
-      // PDF'i indir
+      // PDF'i blob olarak oluştur
+      const pdfBlob = doc.output('blob');
       const fileName = `${hizmet.plaka.replace(/\s/g, '-')}-hizmet-formu.pdf`;
-      doc.save(fileName);
+      
+      // Mobil cihaz kontrolü
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      
+      if (isMobile && navigator.share) {
+        // Mobilde Web Share API kullan
+        try {
+          const file = new File([pdfBlob], fileName, { type: 'application/pdf' });
+          
+          // Web Share API ile paylaş (eğer dosya paylaşımı destekleniyorsa)
+          if (navigator.canShare && navigator.canShare({ files: [file] })) {
+            await navigator.share({
+              files: [file],
+              title: fileName,
+              text: `${hizmet.plaka} - Hizmet Formu`
+            });
+            return;
+          }
+        } catch (shareError) {
+          // Paylaşım başarısız olursa blob URL ile aç
+          console.log('Share API hatası, blob URL kullanılıyor:', shareError);
+        }
+      }
+      
+      // Mobilde blob URL ile yeni sekmede aç (paylaşım menüsü açılır)
+      // Desktop'ta normal indirme
+      if (isMobile) {
+        const blobUrl = URL.createObjectURL(pdfBlob);
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.target = '_blank';
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        // Blob URL'i temizle
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 100);
+      } else {
+        // Desktop'ta normal indirme
+        doc.save(fileName);
+      }
     } catch (error) {
       console.error('PDF oluşturma hatası:', error);
       alert('PDF oluşturulurken bir hata oluştu: ' + error.message);
