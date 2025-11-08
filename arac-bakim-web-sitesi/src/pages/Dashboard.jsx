@@ -15,6 +15,8 @@ function Dashboard() {
   const [toplamKayit, setToplamKayit] = useState(0);
   const [gecmisBakim, setGecmisBakim] = useState(0);
   const [yaklasanBakim, setYaklasanBakim] = useState(0);
+  const [bugununKayitlari, setBugununKayitlari] = useState(0);
+  const [currentSlide, setCurrentSlide] = useState(0);
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((currentUser) => {
@@ -50,8 +52,18 @@ function Dashboard() {
 
         const bugun = new Date();
         bugun.setHours(0, 0, 0, 0);
+        const bugunSonu = new Date(bugun);
+        bugunSonu.setHours(23, 59, 59, 999);
         const birHaftaSonra = new Date(bugun);
         birHaftaSonra.setDate(birHaftaSonra.getDate() + 7);
+
+        // Bugünün kayıtları
+        const bugununListesi = hizmetListesi.filter((hizmet) => {
+          if (!hizmet.hizmetTarihi) return false;
+          const hizmetTarihi = hizmet.hizmetTarihi.toDate();
+          return hizmetTarihi >= bugun && hizmetTarihi <= bugunSonu;
+        });
+        setBugununKayitlari(bugununListesi.length);
 
         // Bakımı geçmiş kayıtlar
         const gecmisListesi = hizmetListesi.filter((hizmet) => {
@@ -153,213 +165,114 @@ function Dashboard() {
 
       {/* Dashboard İçeriği */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Gradient Header */}
-        <div className="bg-gradient-to-br from-[#26a9e0] via-[#1e8fc4] to-[#26a9e0] rounded-2xl p-6 mb-8 text-white">
-          <div className="flex items-center justify-between mb-4">
-            <h1 className="text-2xl font-bold">Dashboard</h1>
-            <span className="text-sm opacity-90">{user?.email?.split('@')[0]}</span>
-          </div>
-        </div>
-
-        {/* Dairesel Progress Bar - Toplam Kayıt */}
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8 mb-6">
-          <div className="flex flex-col items-center justify-center">
-            <div className="relative w-48 h-48 mb-6">
-              <svg className="transform -rotate-90 w-48 h-48">
-                <circle
-                  cx="96"
-                  cy="96"
-                  r="80"
-                  stroke="#e5e7eb"
-                  strokeWidth="16"
-                  fill="none"
-                />
-                <circle
-                  cx="96"
-                  cy="96"
-                  r="80"
-                  stroke="#26a9e0"
-                  strokeWidth="16"
-                  fill="none"
-                  strokeDasharray={`${(toplamKayit / Math.max(toplamKayit, 1)) * 502.4} 502.4`}
-                  strokeLinecap="round"
-                  className="transition-all duration-500"
-                />
-              </svg>
-              <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <p className="text-4xl font-bold text-[#26a9e0]">{toplamKayit}</p>
-                <p className="text-sm text-gray-500 mt-1">Toplam Kayıt</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* İstatistik Kartları */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-          {/* Bakımı Geçmiş */}
-          <div className="bg-white rounded-xl shadow-md border border-gray-100 p-5 hover:shadow-lg transition-shadow">
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <div className="flex items-center mb-3">
-                  <div className="bg-red-100 rounded-lg p-2 mr-3">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-6 w-6 text-red-600"
+        {/* Kaydırmalı Dairesel Progress Bar */}
+        <div className="relative mb-6 overflow-hidden">
+          <div 
+            className="flex transition-transform duration-300 ease-in-out"
+            style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+          >
+            {/* Slide 1: Bugünün Kayıtları */}
+            <div className="min-w-full bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
+              <div className="flex flex-col items-center justify-center">
+                <div className="relative w-48 h-48 mb-6">
+                  <svg className="transform -rotate-90 w-48 h-48">
+                    <circle
+                      cx="96"
+                      cy="96"
+                      r="80"
+                      stroke="#e5e7eb"
+                      strokeWidth="16"
                       fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
+                    />
+                    <circle
+                      cx="96"
+                      cy="96"
+                      r="80"
+                      stroke="#26a9e0"
+                      strokeWidth="16"
+                      fill="none"
+                      strokeDasharray={`${bugununKayitlari > 0 ? 502.4 : 0} 502.4`}
+                      strokeLinecap="round"
+                      className="transition-all duration-500"
+                    />
+                  </svg>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center">
+                    <p className="text-4xl font-bold text-[#26a9e0]">{bugununKayitlari}</p>
+                    <p className="text-sm text-gray-500 mt-1">Bugünün Kayıtları</p>
                   </div>
-                  <div>
-                    <p className="text-sm font-semibold text-gray-900">Bakımı Geçmiş</p>
-                    <p className="text-xs text-gray-500">Acil Müdahale</p>
-                  </div>
-                </div>
-                <div className="mt-2">
-                  <p className="text-2xl font-bold text-red-600">{gecmisBakim}</p>
-                  <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
-                    <div
-                      className="bg-red-500 h-2 rounded-full transition-all duration-500"
-                      style={{ width: `${Math.min((gecmisBakim / Math.max(toplamKayit, 1)) * 100, 100)}%` }}
-                    ></div>
-                  </div>
-                  <p className="text-xs text-gray-500 mt-1">{gecmisBakim} / {toplamKayit} kayıt</p>
                 </div>
               </div>
             </div>
-          </div>
 
-          {/* Yaklaşan Bakım */}
-          <div className="bg-white rounded-xl shadow-md border border-gray-100 p-5 hover:shadow-lg transition-shadow">
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <div className="flex items-center mb-3">
-                  <div className="bg-yellow-100 rounded-lg p-2 mr-3">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-6 w-6 text-yellow-600"
+            {/* Slide 2: Toplam Kayıt ve Bakımı Geçmiş */}
+            <div className="min-w-full bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
+              <div className="flex flex-col items-center justify-center">
+                <div className="relative w-48 h-48 mb-6">
+                  <svg className="transform -rotate-90 w-48 h-48">
+                    {/* Arka plan çember */}
+                    <circle
+                      cx="96"
+                      cy="96"
+                      r="80"
+                      stroke="#e5e7eb"
+                      strokeWidth="16"
                       fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
+                    />
+                    {/* Toplam kayıt çemberi (mavi) */}
+                    {toplamKayit > 0 && (
+                      <circle
+                        cx="96"
+                        cy="96"
+                        r="80"
+                        stroke="#26a9e0"
+                        strokeWidth="16"
+                        fill="none"
+                        strokeDasharray="502.4 502.4"
                         strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                        className="transition-all duration-500"
                       />
-                    </svg>
+                    )}
+                    {/* Bakımı geçmiş çemberi (kırmızı overlay) */}
+                    {gecmisBakim > 0 && toplamKayit > 0 && (
+                      <circle
+                        cx="96"
+                        cy="96"
+                        r="80"
+                        stroke="#ef4444"
+                        strokeWidth="16"
+                        fill="none"
+                        strokeDasharray={`${(gecmisBakim / toplamKayit) * 502.4} 502.4`}
+                        strokeLinecap="round"
+                        className="transition-all duration-500"
+                      />
+                    )}
+                  </svg>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center">
+                    <p className="text-4xl font-bold text-[#26a9e0]">{toplamKayit}</p>
+                    <p className="text-sm text-gray-500 mt-1">Toplam Kayıt</p>
+                    {gecmisBakim > 0 && (
+                      <p className="text-xs text-red-600 mt-1 font-semibold">{gecmisBakim} Geçmiş</p>
+                    )}
                   </div>
-                  <div>
-                    <p className="text-sm font-semibold text-gray-900">Yaklaşan Bakım</p>
-                    <p className="text-xs text-gray-500">1 Hafta İçinde</p>
-                  </div>
-                </div>
-                <div className="mt-2">
-                  <p className="text-2xl font-bold text-yellow-600">{yaklasanBakim}</p>
-                  <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
-                    <div
-                      className="bg-yellow-500 h-2 rounded-full transition-all duration-500"
-                      style={{ width: `${Math.min((yaklasanBakim / Math.max(toplamKayit, 1)) * 100, 100)}%` }}
-                    ></div>
-                  </div>
-                  <p className="text-xs text-gray-500 mt-1">{yaklasanBakim} / {toplamKayit} kayıt</p>
                 </div>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Hızlı Erişim Kartları */}
-        <div className="mb-6">
-          <h2 className="text-lg font-bold text-gray-900 mb-4">Hızlı Erişim</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Kayıt Ekle */}
-            <div
-              onClick={() => navigate('/kayit-ekle')}
-              className="bg-white rounded-xl shadow-md border border-gray-100 p-5 hover:shadow-lg transition-all cursor-pointer"
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <div className="bg-green-100 rounded-lg p-3 mr-4">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-6 w-6 text-green-600"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 4v16m8-8H4"
-                      />
-                    </svg>
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-gray-900">Yeni Kayıt Ekle</p>
-                    <p className="text-xs text-gray-500">Hızlı Kayıt</p>
-                  </div>
-                </div>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5 text-gray-400"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </div>
-            </div>
-
-            {/* Bakım Merkezi */}
-            <div
-              onClick={() => navigate('/bakim-merkezi')}
-              className="bg-white rounded-xl shadow-md border border-gray-100 p-5 hover:shadow-lg transition-all cursor-pointer"
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <div className="bg-blue-100 rounded-lg p-3 mr-4">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-6 w-6 text-blue-600"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                      />
-                    </svg>
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-gray-900">Bakım Merkezi</p>
-                    <p className="text-xs text-gray-500">Tüm Kayıtlar</p>
-                  </div>
-                </div>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5 text-gray-400"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </div>
-            </div>
+          {/* Slide Göstergeleri */}
+          <div className="flex justify-center mt-4 space-x-2">
+            <button
+              onClick={() => setCurrentSlide(0)}
+              className={`w-2 h-2 rounded-full transition-all ${
+                currentSlide === 0 ? 'bg-[#26a9e0] w-8' : 'bg-gray-300'
+              }`}
+            />
+            <button
+              onClick={() => setCurrentSlide(1)}
+              className={`w-2 h-2 rounded-full transition-all ${
+                currentSlide === 1 ? 'bg-[#26a9e0] w-8' : 'bg-gray-300'
+              }`}
+            />
           </div>
         </div>
       </main>
