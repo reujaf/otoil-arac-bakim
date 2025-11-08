@@ -153,13 +153,16 @@ function HizmetKayitFormu() {
           )}
 
           <div className="max-w-4xl mx-auto">
-            <h2 className="text-3xl font-bold text-gray-900 mb-8">Yeni Hizmet Kaydı</h2>
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold text-gray-900 mb-1">Yeni Hizmet Kaydı</h2>
+              <p className="text-sm text-gray-600">Müşteri bilgilerini ve hizmet detaylarını girin</p>
+            </div>
 
-            <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-lg px-8 pt-8 pb-8 border border-gray-100">
+            <form onSubmit={handleSubmit} className="px-0">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Ad Soyad */}
             <div className="md:col-span-2">
-              <label htmlFor="adSoyad" className="block text-gray-700 text-sm font-bold mb-2">
+              <label htmlFor="adSoyad" className="block text-gray-700 text-sm font-semibold mb-2">
                 Ad Soyad *
               </label>
               <input
@@ -169,14 +172,14 @@ function HizmetKayitFormu() {
                 value={formData.adSoyad}
                 onChange={handleChange}
                 required
-                className="shadow-sm appearance-none border border-gray-300 rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                className="w-full py-3 px-4 border-2 border-gray-200 rounded-xl text-gray-700 placeholder-gray-400 focus:outline-none focus:border-[#26a9e0] focus:ring-2 focus:ring-[#26a9e0]/20 transition-all bg-gray-50 focus:bg-white"
                 placeholder="Müşteri adı soyadı"
               />
             </div>
 
             {/* Plaka */}
             <div>
-              <label htmlFor="plaka" className="block text-gray-700 text-sm font-bold mb-2">
+              <label htmlFor="plaka" className="block text-gray-700 text-sm font-semibold mb-2">
                 Plaka *
               </label>
               <input
@@ -186,14 +189,14 @@ function HizmetKayitFormu() {
                 value={formData.plaka}
                 onChange={handleChange}
                 required
-                className="shadow-sm appearance-none border border-gray-300 rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all uppercase"
+                className="w-full py-3 px-4 border-2 border-gray-200 rounded-xl text-gray-700 placeholder-gray-400 focus:outline-none focus:border-[#26a9e0] focus:ring-2 focus:ring-[#26a9e0]/20 transition-all bg-gray-50 focus:bg-white uppercase"
                 placeholder="34 ABC 123"
               />
             </div>
 
             {/* Araç Modeli */}
             <div>
-              <label htmlFor="aracModeli" className="block text-gray-700 text-sm font-bold mb-2">
+              <label htmlFor="aracModeli" className="block text-gray-700 text-sm font-semibold mb-2">
                 Araç Modeli *
               </label>
               <input
@@ -203,14 +206,14 @@ function HizmetKayitFormu() {
                 value={formData.aracModeli}
                 onChange={handleChange}
                 required
-                className="shadow-sm appearance-none border border-gray-300 rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                className="w-full py-3 px-4 border-2 border-gray-200 rounded-xl text-gray-700 placeholder-gray-400 focus:outline-none focus:border-[#26a9e0] focus:ring-2 focus:ring-[#26a9e0]/20 transition-all bg-gray-50 focus:bg-white"
                 placeholder="Örn: Toyota Corolla 2020"
               />
             </div>
 
             {/* Hizmet Tarihi */}
             <div>
-              <label htmlFor="hizmetTarihi" className="block text-gray-700 text-sm font-bold mb-2">
+              <label htmlFor="hizmetTarihi" className="block text-gray-700 text-sm font-semibold mb-2">
                 Hizmet Tarihi *
               </label>
               <input
@@ -220,13 +223,13 @@ function HizmetKayitFormu() {
                 value={formData.hizmetTarihi}
                 onChange={handleChange}
                 required
-                className="shadow-sm appearance-none border border-gray-300 rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                className="w-full py-3 px-4 border-2 border-gray-200 rounded-xl text-gray-700 focus:outline-none focus:border-[#26a9e0] focus:ring-2 focus:ring-[#26a9e0]/20 transition-all bg-gray-50 focus:bg-white"
               />
             </div>
 
             {/* Alınan Ücret */}
             <div>
-              <label htmlFor="alınanUcret" className="block text-gray-700 text-sm font-bold mb-2">
+              <label htmlFor="alınanUcret" className="block text-gray-700 text-sm font-semibold mb-2">
                 Alınan Ücret (₺) *
               </label>
               <input
@@ -238,14 +241,14 @@ function HizmetKayitFormu() {
                 inputMode="numeric"
                 pattern="[0-9.,]*"
                 required
-                className="shadow-sm appearance-none border border-gray-300 rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                className="w-full py-3 px-4 border-2 border-gray-200 rounded-xl text-gray-700 placeholder-gray-400 focus:outline-none focus:border-[#26a9e0] focus:ring-2 focus:ring-[#26a9e0]/20 transition-all bg-gray-50 focus:bg-white"
                 placeholder="0,00"
               />
             </div>
 
             {/* Personel */}
             <div>
-              <label htmlFor="personel" className="block text-gray-700 text-sm font-bold mb-2">
+              <label htmlFor="personel" className="block text-gray-700 text-sm font-semibold mb-2">
                 İşlemi Gerçekleştiren Personel *
               </label>
               <select
@@ -254,7 +257,7 @@ function HizmetKayitFormu() {
                 value={formData.personel}
                 onChange={handleChange}
                 required
-                className="shadow-sm appearance-none border border-gray-300 rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white"
+                className="w-full py-3 px-4 border-2 border-gray-200 rounded-xl text-gray-700 focus:outline-none focus:border-[#26a9e0] focus:ring-2 focus:ring-[#26a9e0]/20 transition-all bg-gray-50 focus:bg-white"
               >
                 <option value="">Personel Seçiniz</option>
                 <option value="Şahin">Şahin</option>
@@ -265,7 +268,7 @@ function HizmetKayitFormu() {
 
           {/* Yapılan İşlemler */}
           <div className="mt-6">
-            <label htmlFor="yapilanIslemler" className="block text-gray-700 text-sm font-bold mb-2">
+            <label htmlFor="yapilanIslemler" className="block text-gray-700 text-sm font-semibold mb-2">
               Yapılan İşlemler *
             </label>
             <textarea
@@ -275,7 +278,7 @@ function HizmetKayitFormu() {
               onChange={handleChange}
               required
               rows="4"
-              className="shadow-sm appearance-none border border-gray-300 rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              className="w-full py-3 px-4 border-2 border-gray-200 rounded-xl text-gray-700 placeholder-gray-400 focus:outline-none focus:border-[#26a9e0] focus:ring-2 focus:ring-[#26a9e0]/20 transition-all bg-gray-50 focus:bg-white resize-none"
               placeholder="Yapılan işlemleri detaylı olarak yazın..."
             />
           </div>
@@ -285,9 +288,24 @@ function HizmetKayitFormu() {
             <button
               type="submit"
               disabled={loading}
-              className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3 px-8 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 shadow-md hover:shadow-lg transition-all"
+              className="bg-gradient-to-r from-[#26a9e0] to-[#1e8fc4] hover:from-[#1e8fc4] hover:to-[#26a9e0] disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3 px-8 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#26a9e0] focus:ring-offset-2 shadow-lg hover:shadow-xl transition-all transform hover:scale-[1.02] disabled:transform-none flex items-center space-x-2"
             >
-              {loading ? 'Kaydediliyor...' : 'Kaydet'}
+              {loading ? (
+                <>
+                  <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <span>Kaydediliyor...</span>
+                </>
+              ) : (
+                <>
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span>Kaydet</span>
+                </>
+              )}
             </button>
           </div>
         </form>
