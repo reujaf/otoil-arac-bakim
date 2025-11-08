@@ -8,12 +8,23 @@ function ProtectedRoute({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
+    let unsubscribe;
+    try {
+      unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+        setUser(currentUser);
+        setLoading(false);
+      }, (error) => {
+        console.error('Auth state change error in ProtectedRoute:', error);
+        setLoading(false);
+      });
+    } catch (error) {
+      console.error('Firebase auth error in ProtectedRoute:', error);
       setLoading(false);
-    });
+    }
 
-    return () => unsubscribe();
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
   }, []);
 
   if (loading) {

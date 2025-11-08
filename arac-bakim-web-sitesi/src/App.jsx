@@ -7,18 +7,30 @@ import Dashboard from './pages/Dashboard';
 import KayitEkle from './pages/KayitEkle';
 import BakimMerkezi from './pages/BakimMerkezi';
 import ProtectedRoute from './components/ProtectedRoute';
+import ErrorBoundary from './components/ErrorBoundary';
 
 function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
+    let unsubscribe;
+    try {
+      unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+        setUser(currentUser);
+        setLoading(false);
+      }, (error) => {
+        console.error('Auth state change error:', error);
+        setLoading(false);
+      });
+    } catch (error) {
+      console.error('Firebase auth initialization error:', error);
       setLoading(false);
-    });
+    }
 
-    return () => unsubscribe();
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
   }, []);
 
   if (loading) {
@@ -30,38 +42,40 @@ function App() {
   }
 
   return (
-    <Router>
-      <Routes>
-        <Route
-          path="/login"
-          element={user ? <Navigate to="/" replace /> : <LoginPage />}
-        />
-        <Route
-          path="/"
-          element={
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/kayit-ekle"
-          element={
-            <ProtectedRoute>
-              <KayitEkle />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/bakim-merkezi"
-          element={
-            <ProtectedRoute>
-              <BakimMerkezi />
-            </ProtectedRoute>
-          }
-        />
-      </Routes>
-    </Router>
+    <ErrorBoundary>
+      <Router>
+        <Routes>
+          <Route
+            path="/login"
+            element={user ? <Navigate to="/" replace /> : <LoginPage />}
+          />
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/kayit-ekle"
+            element={
+              <ProtectedRoute>
+                <KayitEkle />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/bakim-merkezi"
+            element={
+              <ProtectedRoute>
+                <BakimMerkezi />
+              </ProtectedRoute>
+            }
+          />
+        </Routes>
+      </Router>
+    </ErrorBoundary>
   );
 }
 

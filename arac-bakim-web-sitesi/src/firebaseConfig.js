@@ -17,12 +17,30 @@ const firebaseConfig = {
 };
 
 // Firebase'i başlat
-const app = initializeApp(firebaseConfig);
+let app;
+let auth;
+let db;
+let storage;
+
+try {
+  app = initializeApp(firebaseConfig);
+  auth = getAuth(app);
+  db = getFirestore(app);
+  storage = getStorage(app);
+  console.log('Firebase initialized successfully');
+} catch (error) {
+  console.error('Firebase initialization error:', error);
+  // Fallback: try to initialize anyway
+  try {
+    app = initializeApp(firebaseConfig);
+    auth = getAuth(app);
+    db = getFirestore(app);
+    storage = getStorage(app);
+  } catch (fallbackError) {
+    console.error('Firebase fallback initialization also failed:', fallbackError);
+  }
+}
 
 // Firebase servislerini başlat ve dışa aktar
-export const auth = getAuth(app);
-export const db = getFirestore(app);
-export const storage = getStorage(app);
-
+export { auth, db, storage };
 export default app;
-
