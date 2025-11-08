@@ -10,6 +10,7 @@ function HizmetKayitFormu() {
     hizmetTarihi: '',
     yapilanIslemler: '',
     alınanUcret: '',
+    personel: '',
   });
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
@@ -89,6 +90,7 @@ function HizmetKayitFormu() {
         hizmetTarihi: Timestamp.fromDate(hizmetTarihiObj),
         yapilanIslemler: formData.yapilanIslemler,
         alınanUcret: ucret,
+        personel: formData.personel.trim(),
         kullaniciId: user.uid,
         olusturmaTarihi: Timestamp.now(),
         sonrakiBakimTarihi: Timestamp.fromDate(sonrakiBakimTarihi),
@@ -104,6 +106,7 @@ function HizmetKayitFormu() {
             hizmetTarihi: '',
             yapilanIslemler: '',
             alınanUcret: '',
+            personel: '',
           });
           setSuccessMessage('Hizmet kaydı başarıyla oluşturuldu!');
           setLoading(false);
@@ -237,6 +240,23 @@ function HizmetKayitFormu() {
                 required
                 className="shadow-sm appearance-none border border-gray-300 rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 placeholder="0,00"
+              />
+            </div>
+
+            {/* Personel */}
+            <div>
+              <label htmlFor="personel" className="block text-gray-700 text-sm font-bold mb-2">
+                İşlemi Gerçekleştiren Personel *
+              </label>
+              <input
+                type="text"
+                id="personel"
+                name="personel"
+                value={formData.personel}
+                onChange={handleChange}
+                required
+                className="shadow-sm appearance-none border border-gray-300 rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                placeholder="Personel adı"
               />
             </div>
           </div>

@@ -215,6 +215,7 @@ function BakimMerkezi() {
         ['Hizmet Tarihi', formatDateShort(hizmet.hizmetTarihi)],
         ['Yapilan Islemler', turkceKarakterCevir(hizmet.yapilanIslemler || '')],
         ['Alinan Ucret', `${formatFiyat(hizmet.alınanUcret)} TL`],
+        ['Personel', turkceKarakterCevir(hizmet.personel || '')],
       ];
 
       // Modern tablo tasarımı
@@ -573,6 +574,11 @@ function BakimMerkezi() {
                     <p className="text-sm text-gray-700 mb-2">
                       <span className="font-semibold">Araç:</span> {hizmet.aracModeli}
                     </p>
+                    {hizmet.personel && (
+                      <p className="text-sm text-gray-700 mb-2">
+                        <span className="font-semibold">Personel:</span> {hizmet.personel}
+                      </p>
+                    )}
                     {hizmet.sonrakiBakimTarihi && (
                       <p className="text-sm text-gray-700 mb-2">
                         <span className="font-semibold">Sonraki Bakım:</span> {formatDate(hizmet.sonrakiBakimTarihi)}
@@ -640,14 +646,20 @@ function BakimMerkezi() {
                           <span className="text-sm text-gray-600 font-medium">Plaka</span>
                           <p className="text-lg text-gray-900 mt-1">{hizmet.plaka}</p>
                         </div>
-                        <div className="bg-gray-50 rounded-lg p-4">
-                          <span className="text-sm text-gray-600 font-medium">Araç Modeli</span>
-                          <p className="text-lg text-gray-900 mt-1">{hizmet.aracModeli}</p>
-                        </div>
-                        <div className="bg-gray-50 rounded-lg p-4">
-                          <span className="text-sm text-gray-600 font-medium">Hizmet Tarihi</span>
-                          <p className="text-lg text-gray-900 mt-1">{formatDate(hizmet.hizmetTarihi)}</p>
-                        </div>
+                            <div className="bg-gray-50 rounded-lg p-4">
+                              <span className="text-sm text-gray-600 font-medium">Araç Modeli</span>
+                              <p className="text-lg text-gray-900 mt-1">{hizmet.aracModeli}</p>
+                            </div>
+                            {hizmet.personel && (
+                              <div className="bg-gray-50 rounded-lg p-4">
+                                <span className="text-sm text-gray-600 font-medium">Personel</span>
+                                <p className="text-lg text-gray-900 mt-1">{hizmet.personel}</p>
+                              </div>
+                            )}
+                            <div className="bg-gray-50 rounded-lg p-4">
+                              <span className="text-sm text-gray-600 font-medium">Hizmet Tarihi</span>
+                              <p className="text-lg text-gray-900 mt-1">{formatDate(hizmet.hizmetTarihi)}</p>
+                            </div>
                         {hizmet.sonrakiBakimTarihi && (
                           <div className="bg-gray-50 rounded-lg p-4">
                             <span className="text-sm text-gray-600 font-medium">Sonraki Bakım</span>
