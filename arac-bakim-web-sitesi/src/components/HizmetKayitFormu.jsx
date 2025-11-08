@@ -121,14 +121,14 @@ function HizmetKayitFormu() {
 
       return (
         <div>
-          {/* Başarı Modal */}
+          {/* Başarı Toast Bildirimi */}
           {successMessage && (
-            <div className="fixed inset-0 bg-gray-900 bg-opacity-50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-              <div className="bg-white rounded-xl shadow-2xl p-8 max-w-md w-full text-center animate-fade-in">
-                <div className="mb-4">
-                  <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100">
+            <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 animate-slide-down">
+              <div className="bg-white rounded-lg shadow-2xl border border-green-200 px-6 py-4 flex items-center space-x-3 min-w-[300px] max-w-md">
+                <div className="flex-shrink-0">
+                  <div className="flex items-center justify-center h-10 w-10 rounded-full bg-green-100">
                     <svg
-                      className="h-8 w-8 text-green-600"
+                      className="h-6 w-6 text-green-600"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -142,8 +142,9 @@ function HizmetKayitFormu() {
                     </svg>
                   </div>
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">Başarılı!</h3>
-                <p className="text-gray-600">{successMessage}</p>
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-gray-900">{successMessage}</p>
+                </div>
               </div>
             </div>
           )}
