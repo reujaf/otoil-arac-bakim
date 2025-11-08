@@ -248,16 +248,18 @@ function HizmetKayitFormu() {
               <label htmlFor="personel" className="block text-gray-700 text-sm font-bold mb-2">
                 İşlemi Gerçekleştiren Personel *
               </label>
-              <input
-                type="text"
+              <select
                 id="personel"
                 name="personel"
                 value={formData.personel}
                 onChange={handleChange}
                 required
-                className="shadow-sm appearance-none border border-gray-300 rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                placeholder="Personel adı"
-              />
+                className="shadow-sm appearance-none border border-gray-300 rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all bg-white"
+              >
+                <option value="">Personel Seçiniz</option>
+                <option value="Şahin">Şahin</option>
+                <option value="Onur">Onur</option>
+              </select>
             </div>
           </div>
 
