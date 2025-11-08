@@ -4,7 +4,6 @@ import { signOut } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
 import HizmetKayitFormu from '../components/HizmetKayitFormu';
 import BottomNavigation from '../components/BottomNavigation';
-import InstallPrompt from '../components/InstallPrompt';
 import logo from '../assets/otoil-logo.png';
 
 function KayitEkle() {
@@ -59,7 +58,6 @@ function KayitEkle() {
         <HizmetKayitFormu />
           </main>
           <BottomNavigation />
-          <InstallPrompt />
         </div>
       );
     }

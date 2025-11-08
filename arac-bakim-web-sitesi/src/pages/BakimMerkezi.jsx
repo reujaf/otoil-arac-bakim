@@ -3,9 +3,7 @@ import { db, auth } from '../firebaseConfig';
 import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
-import Bildirimler from '../components/Bildirimler';
 import BottomNavigation from '../components/BottomNavigation';
-import InstallPrompt from '../components/InstallPrompt';
 import logo from '../assets/otoil-logo.png';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -15,8 +13,6 @@ function BakimMerkezi() {
   const [tumKayitlar, setTumKayitlar] = useState([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
-  const [bildirimSayisi, setBildirimSayisi] = useState(0);
-  const [bildirimModalAcik, setBildirimModalAcik] = useState(false);
   const [aktifSekme, setAktifSekme] = useState('tumu'); // 'tumu' veya 'gecmis'
   const [aramaMetni, setAramaMetni] = useState('');
   const [selectedHizmet, setSelectedHizmet] = useState(null);
@@ -92,11 +88,6 @@ function BakimMerkezi() {
         setBildirimler(bildirimListesi);
         setLoading(false);
 
-        // Okunmuş bildirimleri kontrol et ve sayıyı hesapla
-        const savedOkunmus = localStorage.getItem('okunmusBildirimler');
-        const okunmusSet = savedOkunmus ? new Set(JSON.parse(savedOkunmus)) : new Set();
-        const okunmamisSayisi = bildirimListesi.filter(b => !okunmusSet.has(b.id)).length;
-        setBildirimSayisi(okunmamisSayisi);
       },
       (error) => {
         console.error('Veri çekme hatası:', error);
@@ -393,35 +384,10 @@ function BakimMerkezi() {
             <div className="flex items-center">
               <img src={logo} alt="OTOIL Logo" className="h-[52px] w-auto cursor-pointer" onClick={() => navigate('/')} />
             </div>
-            <div className="flex items-center space-x-6">
-              {/* Bildirim İkonu */}
-              <div className="relative">
-                <button
-                  onClick={() => setBildirimModalAcik(!bildirimModalAcik)}
-                  className="relative p-2 text-gray-600 hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg transition-colors"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-6 w-6"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-                    />
-                  </svg>
-                  {bildirimSayisi > 0 && (
-                    <span className="absolute top-1 right-1 block h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-white"></span>
-                  )}
-                </button>
-              </div>
-              <span className="hidden md:block text-sm text-gray-600">
-                {user?.email}
-              </span>
+                <div className="flex items-center space-x-6">
+                  <span className="hidden md:block text-sm text-gray-600">
+                    {user?.email}
+                  </span>
               <button
                 onClick={handleLogout}
                 className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
@@ -534,79 +500,39 @@ function BakimMerkezi() {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="flex flex-wrap gap-3">
             {filtrelenmisKayitlar.map((hizmet) => {
               const durum = getBildirimDurumu(hizmet.sonrakiBakimTarihi);
-              // Sadece "Bakımı Geçmiş" sekmesinde durum göster
               const durumGoster = aktifSekme === 'gecmis';
               
               return (
                 <div
                   key={hizmet.id}
-                  className={`bg-white rounded-2xl shadow-lg border-l-4 ${
-                    durumGoster && durum.gecmis ? 'border-red-500' : 
-                    durumGoster && durum.className.includes('orange') ? 'border-orange-500' : 
-                    durumGoster && durum.className.includes('yellow') ? 'border-yellow-500' : 
-                    'border-gray-300'
-                  } p-6 hover:shadow-xl transition-shadow`}
+                  onClick={() => setSelectedHizmet(hizmet.id)}
+                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg cursor-pointer transition-all hover:shadow-md ${
+                    durumGoster && durum.gecmis ? 'bg-red-50 border border-red-200 hover:bg-red-100' : 
+                    durumGoster && durum.className.includes('orange') ? 'bg-orange-50 border border-orange-200 hover:bg-orange-100' : 
+                    durumGoster && durum.className.includes('yellow') ? 'bg-yellow-50 border border-yellow-200 hover:bg-yellow-100' : 
+                    'bg-white border border-gray-200 hover:bg-gray-50'
+                  }`}
                 >
-                  <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <h3 className="text-lg font-bold text-gray-900 mb-1">{hizmet.plaka}</h3>
-                      <p className="text-sm text-gray-600">{getMusteriAdi(hizmet)}</p>
-                    </div>
-                    {durumGoster && durum.text ? (
-                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                  <span className="font-bold text-gray-900">{hizmet.plaka}</span>
+                  <span className="text-gray-600">•</span>
+                  <span className="text-gray-700">{getMusteriAdi(hizmet)}</span>
+                  <span className="text-gray-600">•</span>
+                  <span className="text-sm text-gray-500">{formatDateShort(hizmet.hizmetTarihi)}</span>
+                  {durumGoster && durum.text && (
+                    <>
+                      <span className="text-gray-600">•</span>
+                      <span className={`px-2 py-0.5 rounded text-xs font-semibold ${
                         durum.gecmis ? 'bg-red-100 text-red-800' : 
                         durum.className.includes('orange') ? 'bg-orange-100 text-orange-800' : 
-                        durum.className.includes('yellow') ? 'bg-yellow-100 text-yellow-800' : 
-                        'bg-gray-100 text-gray-800'
+                        'bg-yellow-100 text-yellow-800'
                       }`}>
                         {durum.text}
                       </span>
-                    ) : (
-                      <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                        {formatDate(hizmet.hizmetTarihi)}
-                      </span>
-                    )}
-                  </div>
-                  
-                  <div className="mb-4">
-                    <p className="text-sm text-gray-700 mb-2">
-                      <span className="font-semibold">Araç:</span> {hizmet.aracModeli}
-                    </p>
-                    {hizmet.personel && (
-                      <p className="text-sm text-gray-700 mb-2">
-                        <span className="font-semibold">Personel:</span> {hizmet.personel}
-                      </p>
-                    )}
-                    {hizmet.sonrakiBakimTarihi && (
-                      <p className="text-sm text-gray-700 mb-2">
-                        <span className="font-semibold">Sonraki Bakım:</span> {formatDate(hizmet.sonrakiBakimTarihi)}
-                      </p>
-                    )}
-                    <p className="text-sm text-gray-700 line-clamp-2">
-                      <span className="font-semibold">İşlemler:</span> {hizmet.yapilanIslemler}
-                    </p>
-                    <p className="text-sm text-gray-700 mt-2">
-                      <span className="font-semibold">Ücret:</span> {formatFiyat(hizmet.alınanUcret)} ₺
-                    </p>
-                  </div>
-
-                  <div className="flex items-center space-x-2 pt-4 border-t border-gray-100">
-                    <button
-                      onClick={() => setSelectedHizmet(selectedHizmet === hizmet.id ? null : hizmet.id)}
-                      className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-                    >
-                      {selectedHizmet === hizmet.id ? 'Gizle' : 'Detaylar'}
-                    </button>
-                    <button
-                      onClick={() => handlePDFOlustur(hizmet)}
-                      className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm"
-                    >
-                      PDF İndir
-                    </button>
-                  </div>
+                    </>
+                  )}
                 </div>
               );
             })}
@@ -681,7 +607,7 @@ function BakimMerkezi() {
                           onClick={() => handlePDFOlustur(hizmet)}
                           className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold shadow-md hover:shadow-lg transition-all"
                         >
-                          PDF İndir
+                          PDF Paylaş
                         </button>
                       </div>
                     </div>
@@ -693,35 +619,7 @@ function BakimMerkezi() {
         )}
       </main>
 
-      {/* Bildirim Modal */}
-      {bildirimModalAcik && (
-        <div 
-          className="fixed inset-0 bg-gray-900 bg-opacity-50 backdrop-blur-sm overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4"
-          onClick={() => setBildirimModalAcik(false)}
-        >
-          <div 
-            className="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="sticky top-0 bg-white border-b border-gray-100 px-6 py-4 flex justify-between items-center z-10">
-              <h3 className="text-2xl font-bold text-gray-900">Bildirimler</h3>
-              <button
-                onClick={() => setBildirimModalAcik(false)}
-                className="text-gray-400 hover:text-gray-600 text-2xl font-bold w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"
-              >
-                ×
-              </button>
-            </div>
-            <div className="p-6">
-              <Bildirimler onBildirimSayisiDegis={setBildirimSayisi} onBildirimTikla={() => {
-                setBildirimModalAcik(false);
-              }} />
-            </div>
-          </div>
-        </div>
-      )}
       <BottomNavigation />
-      <InstallPrompt />
     </div>
   );
 }
