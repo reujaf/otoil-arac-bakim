@@ -145,7 +145,7 @@ function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-white pb-16 md:pb-0">
+    <div className="min-h-screen bg-white pb-16">
       {/* Modern Navigation */}
       <nav className="bg-white border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -202,6 +202,32 @@ function Dashboard() {
           onTouchMove={onTouchMove}
           onTouchEnd={onTouchEnd}
         >
+          {/* Sol Ok Butonu */}
+          {currentSlide > 0 && (
+            <button
+              onClick={() => setCurrentSlide(currentSlide - 1)}
+              className="absolute left-2 top-1/2 transform -translate-y-1/2 z-10 bg-white/90 hover:bg-white rounded-full p-2 shadow-lg transition-all hover:scale-110"
+              aria-label="Önceki slide"
+            >
+              <svg className="w-6 h-6 text-[#26a9e0]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+          )}
+
+          {/* Sağ Ok Butonu */}
+          {currentSlide < 1 && (
+            <button
+              onClick={() => setCurrentSlide(currentSlide + 1)}
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 z-10 bg-white/90 hover:bg-white rounded-full p-2 shadow-lg transition-all hover:scale-110"
+              aria-label="Sonraki slide"
+            >
+              <svg className="w-6 h-6 text-[#26a9e0]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          )}
+
           <div 
             className="flex transition-transform duration-300 ease-in-out"
             style={{ transform: `translateX(-${currentSlide * 100}%)` }}

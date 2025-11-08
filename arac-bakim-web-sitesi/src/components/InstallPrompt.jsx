@@ -7,9 +7,26 @@ function InstallPrompt() {
 
   useEffect(() => {
     // Uygulamanın zaten kurulu olup olmadığını kontrol et
-    if (window.matchMedia('(display-mode: standalone)').matches) {
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const isInStandaloneMode = ('standalone' in window.navigator) && window.navigator.standalone;
+    
+    if (isStandalone || isInStandaloneMode) {
       setIsInstalled(true);
       return;
+    }
+
+    // LocalStorage'dan kurulum durumunu kontrol et
+    const installDismissed = localStorage.getItem('installPromptDismissed');
+    let shouldShow = true;
+    
+    if (installDismissed) {
+      const dismissedTime = parseInt(installDismissed, 10);
+      const daysSinceDismissed = (Date.now() - dismissedTime) / (1000 * 60 * 60 * 24);
+      // 7 günden az süre geçtiyse tekrar gösterme
+      if (daysSinceDismissed < 7) {
+        shouldShow = false;
+      }
     }
 
     // PWA install prompt event'ini dinle
@@ -18,7 +35,10 @@ function InstallPrompt() {
       e.preventDefault();
       // Event'i sakla
       setDeferredPrompt(e);
-      setShowPrompt(true);
+      // LocalStorage kontrolü yoksa göster
+      if (shouldShow) {
+        setShowPrompt(true);
+      }
     };
 
     // Uygulama kurulduğunda
@@ -31,36 +51,58 @@ function InstallPrompt() {
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     window.addEventListener('appinstalled', handleAppInstalled);
 
-    // LocalStorage'dan kurulum durumunu kontrol et
-    const installDismissed = localStorage.getItem('installPromptDismissed');
-    if (installDismissed) {
-      const dismissedTime = parseInt(installDismissed, 10);
-      const daysSinceDismissed = (Date.now() - dismissedTime) / (1000 * 60 * 60 * 24);
-      // 7 günden az süre geçtiyse tekrar gösterme
-      if (daysSinceDismissed < 7) {
-        setShowPrompt(false);
-      }
+    // iOS için özel kontrol veya beforeinstallprompt gelmezse
+    let timeoutId;
+    if (isIOS && !isInStandaloneMode && shouldShow) {
+      // iOS'ta beforeinstallprompt event'i gelmez, manuel göster
+      timeoutId = setTimeout(() => {
+        setShowPrompt(true);
+      }, 2000);
+    } else if (!isIOS && shouldShow) {
+      // Desktop için de bir süre sonra göster (beforeinstallprompt gelmeyebilir)
+      timeoutId = setTimeout(() => {
+        setShowPrompt(true);
+      }, 3000);
     }
 
     return () => {
+      if (timeoutId) clearTimeout(timeoutId);
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
       window.removeEventListener('appinstalled', handleAppInstalled);
     };
   }, []);
 
   const handleInstallClick = async () => {
-    if (!deferredPrompt) return;
+    // iOS kontrolü
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    if (isIOS) {
+      // iOS'ta manuel talimat göster
+      alert('Uygulamayı kurmak için:\n1. Safari\'de paylaş butonuna tıklayın\n2. "Ana Ekrana Ekle" seçeneğini seçin');
+      handleDismiss();
+      return;
+    }
 
-    // Prompt'u göster
-    deferredPrompt.prompt();
+    if (!deferredPrompt) {
+      // Eğer prompt yoksa, manuel talimat göster
+      alert('Uygulamayı kurmak için tarayıcınızın adres çubuğundaki kurulum ikonuna tıklayın veya menüden "Uygulamayı yükle" seçeneğini seçin.');
+      handleDismiss();
+      return;
+    }
 
-    // Kullanıcının seçimini bekle
-    const { outcome } = await deferredPrompt.userChoice;
+    try {
+      // Prompt'u göster
+      deferredPrompt.prompt();
 
-    if (outcome === 'accepted') {
-      console.log('Kullanıcı uygulamayı kurmayı kabul etti');
-    } else {
-      console.log('Kullanıcı uygulamayı kurmayı reddetti');
+      // Kullanıcının seçimini bekle
+      const { outcome } = await deferredPrompt.userChoice;
+
+      if (outcome === 'accepted') {
+        console.log('Kullanıcı uygulamayı kurmayı kabul etti');
+      } else {
+        console.log('Kullanıcı uygulamayı kurmayı reddetti');
+      }
+    } catch (error) {
+      console.error('Install prompt hatası:', error);
     }
 
     // Prompt'u temizle
@@ -74,8 +116,13 @@ function InstallPrompt() {
     localStorage.setItem('installPromptDismissed', Date.now().toString());
   };
 
-  // Uygulama zaten kuruluysa veya prompt gösterilmemeli ise hiçbir şey gösterme
-  if (isInstalled || !showPrompt || !deferredPrompt) {
+  // Uygulama zaten kuruluysa hiçbir şey gösterme
+  if (isInstalled) {
+    return null;
+  }
+
+  // Prompt gösterilmeyecekse hiçbir şey gösterme
+  if (!showPrompt) {
     return null;
   }
 
