@@ -17,6 +17,8 @@ function Dashboard() {
   const [yaklasanBakim, setYaklasanBakim] = useState(0);
   const [bugununKayitlari, setBugununKayitlari] = useState(0);
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [touchStart, setTouchStart] = useState(null);
+  const [touchEnd, setTouchEnd] = useState(null);
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((currentUser) => {
@@ -114,6 +116,33 @@ function Dashboard() {
     }
   };
 
+  // Swipe fonksiyonları
+  const minSwipeDistance = 50;
+
+  const onTouchStart = (e) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const onTouchMove = (e) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+
+    if (isLeftSwipe && currentSlide < 1) {
+      setCurrentSlide(currentSlide + 1);
+    }
+    if (isRightSwipe && currentSlide > 0) {
+      setCurrentSlide(currentSlide - 1);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-white pb-16 md:pb-0">
       {/* Modern Navigation */}
@@ -166,7 +195,12 @@ function Dashboard() {
       {/* Dashboard İçeriği */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Kaydırmalı Dairesel Progress Bar */}
-        <div className="relative mb-6 overflow-hidden">
+        <div 
+          className="relative mb-6 overflow-hidden"
+          onTouchStart={onTouchStart}
+          onTouchMove={onTouchMove}
+          onTouchEnd={onTouchEnd}
+        >
           <div 
             className="flex transition-transform duration-300 ease-in-out"
             style={{ transform: `translateX(-${currentSlide * 100}%)` }}
