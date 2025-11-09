@@ -16,10 +16,9 @@ function HizmetListesi() {
     const user = auth.currentUser;
     if (!user) return;
 
-    // Kullanıcının kayıtlarını çek - en son eklenen en üstte
+    // Tüm kullanıcıların kayıtlarını çek (ortak veri) - en son eklenen en üstte
     const q = query(
       collection(db, 'hizmetler'),
-      where('kullaniciId', '==', user.uid),
       orderBy('olusturmaTarihi', 'desc')
     );
 

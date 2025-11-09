@@ -35,9 +35,9 @@ function Dashboard() {
     const user = auth.currentUser;
     if (!user) return;
 
+    // Tüm kullanıcıların kayıtlarını göster (ortak veri)
     const q = query(
-      collection(db, 'hizmetler'),
-      where('kullaniciId', '==', user.uid)
+      collection(db, 'hizmetler')
     );
 
     const unsubscribe = onSnapshot(

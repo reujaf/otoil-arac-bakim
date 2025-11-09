@@ -39,10 +39,9 @@ function Bildirimler({ onBildirimSayisiDegis, onBildirimTikla }) {
     const user = auth.currentUser;
     if (!user) return;
 
-    // Kullanıcının kayıtlarını çek
+    // Tüm kullanıcıların kayıtlarını çek (ortak veri)
     const q = query(
-      collection(db, 'hizmetler'),
-      where('kullaniciId', '==', user.uid)
+      collection(db, 'hizmetler')
     );
 
     const unsubscribe = onSnapshot(
