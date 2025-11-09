@@ -500,7 +500,7 @@ function BakimMerkezi() {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
             {filtrelenmisKayitlar.map((hizmet) => {
               const durum = getBildirimDurumu(hizmet.sonrakiBakimTarihi);
               const durumGoster = aktifSekme === 'gecmis';
@@ -509,7 +509,7 @@ function BakimMerkezi() {
                 <div
                   key={hizmet.id}
                   onClick={() => setSelectedHizmet(hizmet.id)}
-                  className={`bg-white rounded-lg border-2 cursor-pointer transition-all hover:shadow-lg hover:scale-105 ${
+                  className={`bg-white rounded-lg border-2 cursor-pointer transition-all hover:shadow-md hover:scale-105 ${
                     durumGoster && durum.gecmis ? 'border-red-400 shadow-red-100' : 
                     durumGoster && durum.className.includes('orange') ? 'border-orange-400 shadow-orange-100' : 
                     durumGoster && durum.className.includes('yellow') ? 'border-yellow-400 shadow-yellow-100' : 
@@ -517,29 +517,29 @@ function BakimMerkezi() {
                   }`}
                 >
                   {/* Plaka Badge */}
-                  <div className="p-4 border-b-2 border-gray-100 bg-gray-50">
-                    <div className="bg-white border-2 border-gray-600 rounded-md px-4 py-3 text-center shadow-md relative overflow-hidden">
+                  <div className="p-2 border-b border-gray-100 bg-gray-50">
+                    <div className="bg-white border-2 border-gray-600 rounded px-2 py-1.5 text-center shadow-sm relative overflow-hidden">
                       {/* Plaka arka plan efekti */}
                       <div className="absolute inset-0 bg-gradient-to-b from-white via-gray-50 to-white opacity-50"></div>
-                      <span className="relative text-2xl font-black text-gray-900 tracking-widest uppercase">
+                      <span className="relative text-sm font-black text-gray-900 tracking-wider uppercase">
                         {hizmet.plaka}
                       </span>
                     </div>
                   </div>
                   
                   {/* Müşteri Bilgileri */}
-                  <div className="p-4 space-y-2">
+                  <div className="p-2.5 space-y-1.5">
                     <div>
-                      <p className="text-xs text-gray-500 mb-1">Müşteri</p>
-                      <p className="font-semibold text-gray-900">{getMusteriAdi(hizmet)}</p>
+                      <p className="text-xs text-gray-500 mb-0.5">Müşteri</p>
+                      <p className="text-xs font-semibold text-gray-900 truncate">{getMusteriAdi(hizmet)}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-gray-500 mb-1">Tarih</p>
-                      <p className="text-sm text-gray-700">{formatDateShort(hizmet.hizmetTarihi)}</p>
+                      <p className="text-xs text-gray-500 mb-0.5">Tarih</p>
+                      <p className="text-xs text-gray-700">{formatDateShort(hizmet.hizmetTarihi)}</p>
                     </div>
                     {durumGoster && durum.text && (
-                      <div className="pt-2">
-                        <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
+                      <div className="pt-1">
+                        <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-semibold ${
                           durum.gecmis ? 'bg-red-100 text-red-800' : 
                           durum.className.includes('orange') ? 'bg-orange-100 text-orange-800' : 
                           'bg-yellow-100 text-yellow-800'
