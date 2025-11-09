@@ -16,8 +16,5 @@ export default defineConfig({
     },
     outDir: 'dist'
   },
-  publicDir: 'public',
-  define: {
-    'import.meta.env.BASE_URL': JSON.stringify(basePath)
-  }
+  publicDir: 'public'
 })
