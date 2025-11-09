@@ -518,10 +518,10 @@ function BakimMerkezi() {
                 >
                   {/* Plaka Badge */}
                   <div className="p-2 border-b border-gray-100 bg-gray-50">
-                    <div className="bg-white border-2 border-gray-600 rounded px-2 py-1.5 text-center shadow-sm relative overflow-hidden">
+                    <div className="bg-[#26a9e0] border-2 border-[#1e8fc4] rounded px-2 py-1.5 text-center shadow-sm relative overflow-hidden">
                       {/* Plaka arka plan efekti */}
-                      <div className="absolute inset-0 bg-gradient-to-b from-white via-gray-50 to-white opacity-50"></div>
-                      <span className="relative text-sm font-black text-gray-900 tracking-wider uppercase">
+                      <div className="absolute inset-0 bg-gradient-to-b from-[#26a9e0] via-[#1e8fc4] to-[#26a9e0] opacity-80"></div>
+                      <span className="relative text-sm font-black text-white tracking-wider uppercase">
                         {hizmet.plaka}
                       </span>
                     </div>
