@@ -10,8 +10,8 @@ function HizmetKayitFormu() {
     aracModeli: '',
     hizmetTarihi: '',
     yapilanIslemler: '',
+    fullCheckupSonucu: '',
     alınanUcret: '',
-    personel: '',
   });
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
@@ -115,8 +115,9 @@ function HizmetKayitFormu() {
         aracModeli: formData.aracModeli,
         hizmetTarihi: Timestamp.fromDate(hizmetTarihiObj),
         yapilanIslemler: formData.yapilanIslemler,
+        fullCheckupSonucu: formData.fullCheckupSonucu.trim(),
         alınanUcret: ucret,
-        personel: formData.personel.trim(),
+        personel: 'Şahin Lale', // Otomatik olarak Şahin Lale
         kullaniciId: user.uid,
         olusturmaTarihi: Timestamp.now(),
         sonrakiBakimTarihi: Timestamp.fromDate(sonrakiBakimTarihi),
@@ -132,8 +133,8 @@ function HizmetKayitFormu() {
             aracModeli: '',
             hizmetTarihi: '',
             yapilanIslemler: '',
+            fullCheckupSonucu: '',
             alınanUcret: '',
-            personel: '',
           });
           setSuccessMessage('Hizmet kaydı başarıyla oluşturuldu!');
           setLoading(false);
@@ -289,25 +290,6 @@ function HizmetKayitFormu() {
                 placeholder="0,00"
               />
             </div>
-
-            {/* Personel */}
-            <div>
-              <label htmlFor="personel" className="block text-gray-700 text-sm font-semibold mb-2">
-                İşlemi Gerçekleştiren Personel *
-              </label>
-              <select
-                id="personel"
-                name="personel"
-                value={formData.personel}
-                onChange={handleChange}
-                required
-                className="w-full py-3 px-4 border-2 border-gray-200 rounded-xl text-gray-700 focus:outline-none focus:border-[#26a9e0] focus:ring-2 focus:ring-[#26a9e0]/20 transition-all bg-gray-50 focus:bg-white"
-              >
-                <option value="">Personel Seçiniz</option>
-                <option value="Şahin">Şahin</option>
-                <option value="Onur">Onur</option>
-              </select>
-            </div>
           </div>
 
           {/* Yapılan İşlemler */}
@@ -324,6 +306,22 @@ function HizmetKayitFormu() {
               rows="4"
               className="w-full py-3 px-4 border-2 border-gray-200 rounded-xl text-gray-700 placeholder-gray-400 focus:outline-none focus:border-[#26a9e0] focus:ring-2 focus:ring-[#26a9e0]/20 transition-all bg-gray-50 focus:bg-white resize-none"
               placeholder="Yapılan işlemleri detaylı olarak yazın..."
+            />
+          </div>
+
+          {/* Full Check-up Sonucu */}
+          <div className="mt-6">
+            <label htmlFor="fullCheckupSonucu" className="block text-gray-700 text-sm font-semibold mb-2">
+              Full Check-up Sonucu
+            </label>
+            <textarea
+              id="fullCheckupSonucu"
+              name="fullCheckupSonucu"
+              value={formData.fullCheckupSonucu}
+              onChange={handleChange}
+              rows="4"
+              className="w-full py-3 px-4 border-2 border-gray-200 rounded-xl text-gray-700 placeholder-gray-400 focus:outline-none focus:border-[#26a9e0] focus:ring-2 focus:ring-[#26a9e0]/20 transition-all bg-gray-50 focus:bg-white resize-none"
+              placeholder="Full check-up sonuçları ve notlarınızı buraya yazabilirsiniz..."
             />
           </div>
 

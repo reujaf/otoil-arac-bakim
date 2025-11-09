@@ -207,8 +207,13 @@ function BakimMerkezi() {
         ['Hizmet Tarihi', formatDateShort(hizmet.hizmetTarihi)],
         ['Yapilan Islemler', turkceKarakterCevir(hizmet.yapilanIslemler || '')],
         ['Alinan Ucret', `${formatFiyat(hizmet.alınanUcret)} TL`],
-        ['Personel', turkceKarakterCevir(hizmet.personel || '')],
+        ['Personel', turkceKarakterCevir(hizmet.personel || 'Sahin Lale')],
       ];
+
+      // Full Check-up Sonucu varsa ekle
+      if (hizmet.fullCheckupSonucu) {
+        tableData.push(['Full Check-up Sonucu', turkceKarakterCevir(hizmet.fullCheckupSonucu)]);
+      }
 
       // Modern tablo tasarımı
       autoTable(doc, {
@@ -246,14 +251,30 @@ function BakimMerkezi() {
         margin: { left: 14, right: 25 },
       });
       
-      // Alt kısım - Şirket bilgileri
+      // Alt kısım - İletişim bilgileri
       const finalY = doc.lastAutoTable.finalY + 15;
-      if (finalY < pageHeight - 40) {
+      const iletisimY = finalY + 10;
+      
+      if (iletisimY < pageHeight - 60) {
         doc.setFontSize(9);
         doc.setTextColor(100, 100, 100);
-        doc.text('OTOIL Yag ve Bakim Merkezi', 14, pageHeight - 25);
+        doc.text('OTOIL Yag ve Bakim Merkezi', 14, iletisimY);
         doc.setFontSize(8);
-        doc.text('www.otoil.com | info@otoil.com', 14, pageHeight - 18);
+        doc.text('Iletisim: 0507 541 63 25', 14, iletisimY + 6);
+        doc.text('www.otoil.com | info@otoil.com', 14, iletisimY + 12);
+        
+        // Sorumluluk reddi metni
+        const sorumlulukY = iletisimY + 20;
+        if (sorumlulukY < pageHeight - 30) {
+          doc.setFontSize(7);
+          doc.setTextColor(120, 120, 120);
+          const sorumlulukMetni = 'SORUMLULUK REDDI: Bu belgede yer alan sonuclar usta gorusu olup, anlik olarak yapilan kontrol sonuclaridir. Detayli muayene ve kesin tespit icin yetkili servislere basvurulmasi onerilir.';
+          const sorumlulukLines = doc.splitTextToSize(sorumlulukMetni, pageWidth - 30 - 25);
+          doc.text(sorumlulukLines, 14, sorumlulukY, {
+            maxWidth: pageWidth - 30 - 25,
+            align: 'left'
+          });
+        }
       }
 
       // PDF'i blob olarak oluştur
@@ -647,6 +668,12 @@ function BakimMerkezi() {
                           <span className="text-sm text-gray-600 font-medium">Yapılan İşlemler</span>
                           <p className="text-gray-700 mt-1">{hizmet.yapilanIslemler}</p>
                         </div>
+                        {hizmet.fullCheckupSonucu && (
+                          <div className="bg-gray-50 rounded-lg p-4">
+                            <span className="text-sm text-gray-600 font-medium">Full Check-up Sonucu</span>
+                            <p className="text-gray-700 mt-1 whitespace-pre-wrap">{hizmet.fullCheckupSonucu}</p>
+                          </div>
+                        )}
                         <div className="bg-blue-50 rounded-lg p-4">
                           <span className="text-sm text-blue-600 font-medium">Alınan Ücret</span>
                           <p className="text-xl font-bold text-blue-900 mt-1">{formatFiyat(hizmet.alınanUcret)} ₺</p>

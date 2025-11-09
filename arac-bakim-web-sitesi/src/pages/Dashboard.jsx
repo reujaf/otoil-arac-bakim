@@ -83,9 +83,9 @@ function Dashboard() {
         setGecmisBakim(gecmisListesi.length);
 
         // Personel performansını hesapla
-        const personelListesi = ['Şahin', 'Onur'];
+        const personelListesi = ['Şahin Lale'];
         const performansData = personelListesi.map((personel) => {
-          const personelKayitlari = hizmetListesi.filter((hizmet) => hizmet.personel === personel);
+          const personelKayitlari = hizmetListesi.filter((hizmet) => hizmet.personel === personel || hizmet.personel === 'Şahin' || hizmet.personel === 'Onur' || !hizmet.personel);
           const bugununKayitlari = personelKayitlari.filter((hizmet) => {
             if (!hizmet.hizmetTarihi) return false;
             const hizmetTarihi = hizmet.hizmetTarihi.toDate();
