@@ -347,87 +347,119 @@ function Dashboard() {
             {/* Personel Performans Grafiği */}
             {personelPerformans.length > 0 && (
               <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 mt-6">
-                <h2 className="text-xl font-bold text-gray-900 mb-6">Personel Performansı</h2>
+                <h2 className="text-xl font-bold text-gray-900 mb-6">Personel Performansı - Bugün</h2>
                 
-                {/* Bar Chart */}
-                <div className="space-y-6">
-                  {personelPerformans.map((personel, index) => {
-                    const maxKayit = Math.max(...personelPerformans.map(p => p.toplamKayit), 1);
-                    const barWidth = (personel.toplamKayit / maxKayit) * 100;
-                    const bugunMaxKayit = Math.max(...personelPerformans.map(p => p.bugununKayitlari), 1);
-                    const bugunBarWidth = personel.bugununKayitlari > 0 ? (personel.bugununKayitlari / bugunMaxKayit) * 100 : 0;
+                {/* Bugünün Kayıtları Grafiği */}
+                <div className="mb-8">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-gray-700">Bugünün Kayıtları</h3>
+                    <span className="text-sm font-bold text-gray-900">
+                      Toplam: {personelPerformans.reduce((sum, p) => sum + p.bugununKayitlari, 0)} kayıt
+                    </span>
+                  </div>
+                  <div className="space-y-4">
+                    {personelPerformans.map((personel, index) => {
+                      const bugunToplamKayit = personelPerformans.reduce((sum, p) => sum + p.bugununKayitlari, 0);
+                      const barWidth = bugunToplamKayit > 0 ? (personel.bugununKayitlari / bugunToplamKayit) * 100 : 0;
 
-                    return (
-                      <div key={personel.personel} className="space-y-2">
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center space-x-3">
-                            <div className={`w-3 h-3 rounded-full ${
-                              index === 0 ? 'bg-[#26a9e0]' : index === 1 ? 'bg-[#10b981]' : 'bg-gray-400'
-                            }`}></div>
-                            <span className="font-semibold text-gray-900">{personel.personel}</span>
+                      return (
+                        <div key={`kayit-${personel.personel}`} className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-3">
+                              <div className={`w-3 h-3 rounded-full ${
+                                index === 0 ? 'bg-[#26a9e0]' : index === 1 ? 'bg-[#10b981]' : 'bg-gray-400'
+                              }`}></div>
+                              <span className="font-semibold text-gray-900">{personel.personel}</span>
+                            </div>
+                            <span className="text-lg font-bold text-gray-900">{personel.bugununKayitlari}</span>
                           </div>
-                          <div className="text-right">
-                            <span className="text-lg font-bold text-gray-900">{personel.toplamKayit}</span>
-                            <span className="text-sm text-gray-500 ml-1">kayıt</span>
+                          <div className="relative h-8 bg-gray-100 rounded-full overflow-hidden">
+                            <div
+                              className={`h-full rounded-full transition-all duration-500 flex items-center justify-end pr-3 ${
+                                index === 0 ? 'bg-gradient-to-r from-[#26a9e0] to-[#1e8fc4]' : 
+                                index === 1 ? 'bg-gradient-to-r from-[#10b981] to-[#059669]' : 
+                                'bg-gradient-to-r from-gray-400 to-gray-500'
+                              }`}
+                              style={{ width: `${barWidth}%` }}
+                            >
+                              {barWidth > 15 && (
+                                <span className="text-white text-sm font-semibold">{personel.bugununKayitlari}</span>
+                              )}
+                            </div>
+                            {barWidth <= 15 && personel.bugununKayitlari > 0 && (
+                              <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-sm font-semibold text-gray-700">
+                                {personel.bugununKayitlari}
+                              </span>
+                            )}
                           </div>
                         </div>
-                        
-                        {/* Toplam Kayıt Bar */}
-                        <div className="relative h-6 bg-gray-100 rounded-full overflow-hidden">
-                          <div
-                            className={`h-full rounded-full transition-all duration-500 ${
-                              index === 0 ? 'bg-gradient-to-r from-[#26a9e0] to-[#1e8fc4]' : 
-                              index === 1 ? 'bg-gradient-to-r from-[#10b981] to-[#059669]' : 
-                              'bg-gradient-to-r from-gray-400 to-gray-500'
-                            }`}
-                            style={{ width: `${barWidth}%` }}
-                          ></div>
-                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
 
-                        {/* Bugünün Kayıtları */}
-                        {personel.bugununKayitlari > 0 && (
-                          <div className="flex items-center justify-between text-sm text-gray-600 mt-1">
-                            <span>Bugün: {personel.bugununKayitlari} kayıt</span>
-                            <span className="font-semibold text-green-600">
+                {/* Bugünün Cirosu Grafiği */}
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-gray-700">Bugünün Cirosu</h3>
+                    <span className="text-sm font-bold text-gray-900">
+                      Toplam: {personelPerformans.reduce((sum, p) => sum + p.bugununCirosu, 0).toLocaleString('tr-TR', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                      })} ₺
+                    </span>
+                  </div>
+                  <div className="space-y-4">
+                    {personelPerformans.map((personel, index) => {
+                      const bugunToplamCiro = personelPerformans.reduce((sum, p) => sum + p.bugununCirosu, 0);
+                      const barWidth = bugunToplamCiro > 0 ? (personel.bugununCirosu / bugunToplamCiro) * 100 : 0;
+
+                      return (
+                        <div key={`ciro-${personel.personel}`} className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-3">
+                              <div className={`w-3 h-3 rounded-full ${
+                                index === 0 ? 'bg-[#26a9e0]' : index === 1 ? 'bg-[#10b981]' : 'bg-gray-400'
+                              }`}></div>
+                              <span className="font-semibold text-gray-900">{personel.personel}</span>
+                            </div>
+                            <span className="text-lg font-bold text-gray-900">
                               {personel.bugununCirosu.toLocaleString('tr-TR', {
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2
                               })} ₺
                             </span>
                           </div>
-                        )}
-
-                        {/* Toplam Ciro */}
-                        <div className="flex items-center justify-between text-sm text-gray-500 mt-1">
-                          <span>Toplam Ciro:</span>
-                          <span className="font-semibold text-gray-700">
-                            {personel.toplamCiro.toLocaleString('tr-TR', {
-                              minimumFractionDigits: 2,
-                              maximumFractionDigits: 2
-                            })} ₺
-                          </span>
+                          <div className="relative h-8 bg-gray-100 rounded-full overflow-hidden">
+                            <div
+                              className={`h-full rounded-full transition-all duration-500 flex items-center justify-end pr-3 ${
+                                index === 0 ? 'bg-gradient-to-r from-[#26a9e0] to-[#1e8fc4]' : 
+                                index === 1 ? 'bg-gradient-to-r from-[#10b981] to-[#059669]' : 
+                                'bg-gradient-to-r from-gray-400 to-gray-500'
+                              }`}
+                              style={{ width: `${barWidth}%` }}
+                            >
+                              {barWidth > 20 && (
+                                <span className="text-white text-sm font-semibold">
+                                  {personel.bugununCirosu.toLocaleString('tr-TR', {
+                                    minimumFractionDigits: 0,
+                                    maximumFractionDigits: 0
+                                  })} ₺
+                                </span>
+                              )}
+                            </div>
+                            {barWidth <= 20 && personel.bugununCirosu > 0 && (
+                              <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-sm font-semibold text-gray-700">
+                                {personel.bugununCirosu.toLocaleString('tr-TR', {
+                                  minimumFractionDigits: 0,
+                                  maximumFractionDigits: 0
+                                })} ₺
+                              </span>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                {/* Özet İstatistikler */}
-                <div className="mt-6 pt-6 border-t border-gray-200 grid grid-cols-2 gap-4">
-                  <div className="text-center">
-                    <p className="text-sm text-gray-500 mb-1">Toplam Kayıt</p>
-                    <p className="text-2xl font-bold text-gray-900">
-                      {personelPerformans.reduce((sum, p) => sum + p.toplamKayit, 0)}
-                    </p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-sm text-gray-500 mb-1">Toplam Ciro</p>
-                    <p className="text-2xl font-bold text-gray-900">
-                      {personelPerformans.reduce((sum, p) => sum + p.toplamCiro, 0).toLocaleString('tr-TR', {
-                        minimumFractionDigits: 0,
-                        maximumFractionDigits: 0
-                      })} ₺
-                    </p>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
