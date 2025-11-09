@@ -1,10 +1,9 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Hizmetler koleksiyonu - kullanıcı sadece kendi kayıtlarını görebilir ve ekleyebilir
+    // Hizmetler koleksiyonu - tüm giriş yapmış kullanıcılar tüm kayıtları görebilir ve ekleyebilir
     match /hizmetler/{hizmetId} {
-      allow read, write: if request.auth != null && request.auth.uid == resource.data.kullaniciId;
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.kullaniciId;
+      allow read, write, create, update, delete: if request.auth != null;
     }
   }
 }
