@@ -215,7 +215,6 @@ function BakimMerkezi() {
         [turkceKarakterCevir('Araç Modeli'), turkceKarakterCevir(hizmet.aracModeli || '')],
         [turkceKarakterCevir('Hizmet Tarihi'), turkceKarakterCevir(formatDateShort(hizmet.hizmetTarihi))],
         [turkceKarakterCevir('Yapılan İşlemler'), turkceKarakterCevir(hizmet.yapilanIslemler || '')],
-        [turkceKarakterCevir('Alınan Ücret'), `${formatFiyat(hizmet.alınanUcret)} TL`],
         [turkceKarakterCevir('Personel'), turkceKarakterCevir(hizmet.personel || 'Şahin Lale')],
       ];
 
