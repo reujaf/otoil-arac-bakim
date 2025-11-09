@@ -10,13 +10,8 @@ function Dashboard() {
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
   const [toplamKayit, setToplamKayit] = useState(0);
-  const [gecmisBakim, setGecmisBakim] = useState(0);
-  const [yaklasanBakim, setYaklasanBakim] = useState(0);
   const [bugununKayitlari, setBugununKayitlari] = useState(0);
   const [gunlukCiro, setGunlukCiro] = useState(0);
-  const [currentSlide, setCurrentSlide] = useState(0);
-  const [touchStart, setTouchStart] = useState(null);
-  const [touchEnd, setTouchEnd] = useState(null);
   const [personelPerformans, setPersonelPerformans] = useState([]);
 
   useEffect(() => {
@@ -73,14 +68,6 @@ function Dashboard() {
         }, 0);
         setGunlukCiro(toplamCiro);
 
-        // Bakımı geçmiş kayıtlar
-        const gecmisListesi = hizmetListesi.filter((hizmet) => {
-          if (!hizmet.sonrakiBakimTarihi) return false;
-          const sonrakiBakimTarihi = hizmet.sonrakiBakimTarihi.toDate();
-          sonrakiBakimTarihi.setHours(0, 0, 0, 0);
-          return sonrakiBakimTarihi < bugun;
-        });
-        setGecmisBakim(gecmisListesi.length);
 
         // Personel performansını hesapla
         const personelListesi = ['Şahin Lale'];
@@ -129,32 +116,6 @@ function Dashboard() {
     }
   };
 
-  // Swipe fonksiyonları
-  const minSwipeDistance = 50;
-
-  const onTouchStart = (e) => {
-    setTouchEnd(null);
-    setTouchStart(e.targetTouches[0].clientX);
-  };
-
-  const onTouchMove = (e) => {
-    setTouchEnd(e.targetTouches[0].clientX);
-  };
-
-  const onTouchEnd = () => {
-    if (!touchStart || !touchEnd) return;
-    
-    const distance = touchStart - touchEnd;
-    const isLeftSwipe = distance > minSwipeDistance;
-    const isRightSwipe = distance < -minSwipeDistance;
-
-    if (isLeftSwipe && currentSlide < 1) {
-      setCurrentSlide(currentSlide + 1);
-    }
-    if (isRightSwipe && currentSlide > 0) {
-      setCurrentSlide(currentSlide - 1);
-    }
-  };
 
   return (
     <div className="min-h-screen bg-white pb-16">
@@ -182,150 +143,41 @@ function Dashboard() {
 
       {/* Dashboard İçeriği */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Kaydırmalı Dairesel Progress Bar */}
-        <div 
-          className="relative mb-6 overflow-hidden"
-          onTouchStart={onTouchStart}
-          onTouchMove={onTouchMove}
-          onTouchEnd={onTouchEnd}
-        >
-          {/* Sol Ok Butonu */}
-          {currentSlide > 0 && (
-            <button
-              onClick={() => setCurrentSlide(currentSlide - 1)}
-              className="absolute left-2 top-1/2 transform -translate-y-1/2 z-10 bg-white/90 hover:bg-white rounded-full p-2 shadow-lg transition-all hover:scale-110"
-              aria-label="Önceki slide"
-            >
-              <svg className="w-6 h-6 text-[#26a9e0]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+        {/* Bugünün Kayıtları */}
+        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8 mb-6">
+          <div className="flex flex-col items-center justify-center">
+            <div className="relative w-48 h-48 mb-6">
+              <svg className="transform -rotate-90 w-48 h-48">
+                <circle
+                  cx="96"
+                  cy="96"
+                  r="80"
+                  stroke="#e5e7eb"
+                  strokeWidth="16"
+                  fill="none"
+                />
+                <circle
+                  cx="96"
+                  cy="96"
+                  r="80"
+                  stroke="#26a9e0"
+                  strokeWidth="16"
+                  fill="none"
+                  strokeDasharray={`${bugununKayitlari > 0 ? 502.4 : 0} 502.4`}
+                  strokeLinecap="round"
+                  className="transition-all duration-500"
+                />
               </svg>
-            </button>
-          )}
-
-          {/* Sağ Ok Butonu */}
-          {currentSlide < 1 && (
-            <button
-              onClick={() => setCurrentSlide(currentSlide + 1)}
-              className="absolute right-2 top-1/2 transform -translate-y-1/2 z-10 bg-white/90 hover:bg-white rounded-full p-2 shadow-lg transition-all hover:scale-110"
-              aria-label="Sonraki slide"
-            >
-              <svg className="w-6 h-6 text-[#26a9e0]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
-          )}
-
-          <div 
-            className="flex transition-transform duration-300 ease-in-out"
-            style={{ transform: `translateX(-${currentSlide * 100}%)` }}
-          >
-            {/* Slide 1: Bugünün Kayıtları */}
-            <div className="min-w-full bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
-              <div className="flex flex-col items-center justify-center">
-                <div className="relative w-48 h-48 mb-6">
-                  <svg className="transform -rotate-90 w-48 h-48">
-                    <circle
-                      cx="96"
-                      cy="96"
-                      r="80"
-                      stroke="#e5e7eb"
-                      strokeWidth="16"
-                      fill="none"
-                    />
-                    <circle
-                      cx="96"
-                      cy="96"
-                      r="80"
-                      stroke="#26a9e0"
-                      strokeWidth="16"
-                      fill="none"
-                      strokeDasharray={`${bugununKayitlari > 0 ? 502.4 : 0} 502.4`}
-                      strokeLinecap="round"
-                      className="transition-all duration-500"
-                    />
-                  </svg>
-                  <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <p className="text-4xl font-bold text-[#26a9e0]">{bugununKayitlari}</p>
-                    <p className="text-sm text-gray-500 mt-1">Bugünün Kayıtları</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Slide 2: Toplam Kayıt ve Bakımı Geçmiş */}
-            <div className="min-w-full bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
-              <div className="flex flex-col items-center justify-center">
-                <div className="relative w-48 h-48 mb-6">
-                  <svg className="transform -rotate-90 w-48 h-48">
-                    {/* Arka plan çember */}
-                    <circle
-                      cx="96"
-                      cy="96"
-                      r="80"
-                      stroke="#e5e7eb"
-                      strokeWidth="16"
-                      fill="none"
-                    />
-                    {/* Toplam kayıt çemberi (mavi) */}
-                    {toplamKayit > 0 && (
-                      <circle
-                        cx="96"
-                        cy="96"
-                        r="80"
-                        stroke="#26a9e0"
-                        strokeWidth="16"
-                        fill="none"
-                        strokeDasharray="502.4 502.4"
-                        strokeLinecap="round"
-                        className="transition-all duration-500"
-                      />
-                    )}
-                    {/* Bakımı geçmiş çemberi (kırmızı overlay) */}
-                    {gecmisBakim > 0 && toplamKayit > 0 && (
-                      <circle
-                        cx="96"
-                        cy="96"
-                        r="80"
-                        stroke="#ef4444"
-                        strokeWidth="16"
-                        fill="none"
-                        strokeDasharray={`${(gecmisBakim / toplamKayit) * 502.4} 502.4`}
-                        strokeLinecap="round"
-                        className="transition-all duration-500"
-                      />
-                    )}
-                  </svg>
-                  <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <p className="text-4xl font-bold text-[#26a9e0]">{toplamKayit}</p>
-                    <p className="text-sm text-gray-500 mt-1">Toplam Kayıt</p>
-                    {gecmisBakim > 0 && (
-                      <p className="text-xs text-red-600 mt-1 font-semibold">{gecmisBakim} Geçmiş</p>
-                    )}
-                  </div>
-                </div>
+              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <p className="text-4xl font-bold text-[#26a9e0]">{bugununKayitlari}</p>
+                <p className="text-sm text-gray-500 mt-1">Bugünün Kayıtları</p>
               </div>
             </div>
           </div>
+        </div>
 
-              {/* Slide Göstergeleri */}
-              <div className="flex justify-center mt-4 space-x-2">
-                <button
-                  onClick={() => setCurrentSlide(0)}
-                  className={`w-2 h-2 rounded-full transition-all ${
-                    currentSlide === 0 ? 'bg-[#26a9e0] w-8' : 'bg-gray-300'
-                  }`}
-                />
-                <button
-                  onClick={() => setCurrentSlide(1)}
-                  className={`w-2 h-2 rounded-full transition-all ${
-                    currentSlide === 1 ? 'bg-[#26a9e0] w-8' : 'bg-gray-300'
-                  }`}
-                />
-              </div>
-            </div>
-
-            {/* Günlük Ciro Kartı */}
-            <div className="bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl shadow-lg border border-gray-100 p-6 mt-6">
+        {/* Günlük Ciro Kartı */}
+        <div className="bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl shadow-lg border border-gray-100 p-6 mb-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-white/90 text-sm font-medium mb-1">Günlük Ciro</p>
@@ -344,9 +196,9 @@ function Dashboard() {
               </div>
             </div>
 
-            {/* Personel Performans Grafiği */}
-            {personelPerformans.length > 0 && (
-              <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 mt-6">
+        {/* Personel Performans Grafiği */}
+        {personelPerformans.length > 0 && (
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6">
                 <h2 className="text-xl font-bold text-gray-900 mb-6">Personel Performansı - Bugün</h2>
                 
                 {/* Bugünün Kayıtları Grafiği */}
