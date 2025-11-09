@@ -188,37 +188,37 @@ function BakimMerkezi() {
       const startY = logoHeight > 0 ? logoHeight + 15 : 20;
       doc.setFontSize(16);
       doc.setTextColor(40, 40, 40);
-      doc.text('Arac Bakim Hizmet Formu', 14, startY);
+      doc.text(turkceKarakterCevir('Araç Bakım Hizmet Formu'), 14, startY);
       
       // Tarih - sağa hizalı (mavi çubuktan önce)
       doc.setFontSize(10);
       doc.setTextColor(100, 100, 100);
-      const tarihText = formatDateShort(hizmet.hizmetTarihi);
+      const tarihText = turkceKarakterCevir(formatDateShort(hizmet.hizmetTarihi));
       const tarihWidth = doc.getTextWidth(tarihText);
       doc.text(tarihText, pageWidth - 30 - tarihWidth, startY);
       
       // Tablo verileri - Türkçe karakterleri ASCII'ye çevir
       const musteriAdi = getMusteriAdi(hizmet);
       const tableData = [
-        ['Musteri Adi Soyadi', turkceKarakterCevir(musteriAdi)],
-        ['Telefon', hizmet.telefon || ''],
-        ['Plaka', turkceKarakterCevir(hizmet.plaka || '')],
-        ['Arac Modeli', turkceKarakterCevir(hizmet.aracModeli || '')],
-        ['Hizmet Tarihi', formatDateShort(hizmet.hizmetTarihi)],
-        ['Yapilan Islemler', turkceKarakterCevir(hizmet.yapilanIslemler || '')],
-        ['Alinan Ucret', `${formatFiyat(hizmet.alınanUcret)} TL`],
-        ['Personel', turkceKarakterCevir(hizmet.personel || 'Sahin Lale')],
+        [turkceKarakterCevir('Müşteri Adı Soyadı'), turkceKarakterCevir(musteriAdi)],
+        [turkceKarakterCevir('Telefon'), hizmet.telefon || ''],
+        [turkceKarakterCevir('Plaka'), turkceKarakterCevir(hizmet.plaka || '')],
+        [turkceKarakterCevir('Araç Modeli'), turkceKarakterCevir(hizmet.aracModeli || '')],
+        [turkceKarakterCevir('Hizmet Tarihi'), turkceKarakterCevir(formatDateShort(hizmet.hizmetTarihi))],
+        [turkceKarakterCevir('Yapılan İşlemler'), turkceKarakterCevir(hizmet.yapilanIslemler || '')],
+        [turkceKarakterCevir('Alınan Ücret'), `${formatFiyat(hizmet.alınanUcret)} TL`],
+        [turkceKarakterCevir('Personel'), turkceKarakterCevir(hizmet.personel || 'Şahin Lale')],
       ];
 
       // Full Check-up Sonucu varsa ekle
       if (hizmet.fullCheckupSonucu) {
-        tableData.push(['Full Check-up Sonucu', turkceKarakterCevir(hizmet.fullCheckupSonucu)]);
+        tableData.push([turkceKarakterCevir('Full Check-up Sonucu'), turkceKarakterCevir(hizmet.fullCheckupSonucu)]);
       }
 
       // Modern tablo tasarımı
       autoTable(doc, {
         startY: startY + 25,
-        head: [['Bilgi', 'Deger']],
+        head: [[turkceKarakterCevir('Bilgi'), turkceKarakterCevir('Değer')]],
         body: tableData,
         theme: 'striped',
         headStyles: { 
@@ -258,9 +258,9 @@ function BakimMerkezi() {
       if (iletisimY < pageHeight - 60) {
         doc.setFontSize(9);
         doc.setTextColor(100, 100, 100);
-        doc.text('OTOIL Yag ve Bakim Merkezi', 14, iletisimY);
+        doc.text(turkceKarakterCevir('OTOIL Yağ ve Bakım Merkezi'), 14, iletisimY);
         doc.setFontSize(8);
-        doc.text('Iletisim: 0507 541 63 25', 14, iletisimY + 6);
+        doc.text(turkceKarakterCevir('İletişim: 0507 541 63 25'), 14, iletisimY + 6);
         doc.text('www.otoil.com | info@otoil.com', 14, iletisimY + 12);
         
         // Sorumluluk reddi metni
@@ -268,7 +268,7 @@ function BakimMerkezi() {
         if (sorumlulukY < pageHeight - 30) {
           doc.setFontSize(7);
           doc.setTextColor(120, 120, 120);
-          const sorumlulukMetni = 'SORUMLULUK REDDI: Bu belgede yer alan sonuclar usta gorusu olup, anlik olarak yapilan kontrol sonuclaridir. OTOIL Yağ ve Bakım Merkezi bilgi verilen sorunlardan sorumlu değildir.';
+          const sorumlulukMetni = turkceKarakterCevir('SORUMLULUK REDDI: Bu belgede yer alan sonuçlar usta görüşü olup, anlık olarak yapılan kontrol sonuçlarıdır. OTOIL Yağ ve Bakım Merkezi bilgi verilen sorunlardan sorumlu değildir.');
           const sorumlulukLines = doc.splitTextToSize(sorumlulukMetni, pageWidth - 30 - 25);
           doc.text(sorumlulukLines, 14, sorumlulukY, {
             maxWidth: pageWidth - 30 - 25,
