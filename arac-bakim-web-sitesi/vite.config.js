@@ -1,8 +1,9 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-// GitHub Pages için base path
-const basePath = process.env.NODE_ENV === 'production' ? '/otoil-arac-bakim/' : '/';
+// Cloudflare Pages için base path (GitHub Pages için '/otoil-arac-bakim/' idi)
+// Cloudflare Pages'de base path '/' olmalı
+const basePath = process.env.NODE_ENV === 'production' ? '/' : '/';
 
 // https://vite.dev/config/
 export default defineConfig({
