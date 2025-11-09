@@ -3,7 +3,7 @@
 # Git push ve Netlify deploy script'i
 # Kullanım: ./deploy.sh "commit mesajı"
 
-set -e  # Hata durumunda dur
+# set -e kaldırıldı - Netlify deploy hatası durumunda script devam etsin
 
 # Renkler
 GREEN='\033[0;32m'
@@ -53,8 +53,16 @@ echo -e "${BLUE}🔨 Build yapılıyor...${NC}"
 npm run build
 
 echo -e "${BLUE}🌐 Netlify'a deploy ediliyor...${NC}"
-netlify deploy --prod --dir=dist
-
-echo -e "\n${GREEN}✅ Deploy tamamlandı!${NC}"
-echo -e "${GREEN}🌍 Site: https://otoil-arac-bakim.netlify.app${NC}"
+if netlify deploy --prod --dir=dist; then
+    echo -e "\n${GREEN}✅ Deploy tamamlandı!${NC}"
+    echo -e "${GREEN}🌍 Site: https://otoil-arac-bakim.netlify.app${NC}"
+else
+    echo -e "\n${YELLOW}⚠️  Netlify deploy başarısız oldu${NC}"
+    echo -e "${YELLOW}💡 Çözüm önerileri:${NC}"
+    echo -e "   1. Netlify hesabınıza credit ekleyin"
+    echo -e "   2. GitHub entegrasyonu ile otomatik deploy kullanın"
+    echo -e "   3. Netlify dashboard'dan manuel deploy yapın"
+    echo -e "\n${GREEN}✓ Git push başarılı - GitHub'da güncel${NC}"
+    exit 1
+fi
 
