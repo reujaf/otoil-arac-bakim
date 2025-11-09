@@ -53,16 +53,29 @@ echo -e "${BLUE}🔨 Build yapılıyor...${NC}"
 npm run build
 
 echo -e "${BLUE}🌐 Netlify'a deploy ediliyor...${NC}"
-if netlify deploy --prod --dir=dist; then
+if netlify deploy --prod --dir=dist 2>&1 | tee /tmp/netlify_deploy.log; then
     echo -e "\n${GREEN}✅ Deploy tamamlandı!${NC}"
     echo -e "${GREEN}🌍 Site: https://otoil-arac-bakim.netlify.app${NC}"
 else
+    DEPLOY_ERROR=$(cat /tmp/netlify_deploy.log 2>/dev/null || echo "")
     echo -e "\n${YELLOW}⚠️  Netlify deploy başarısız oldu${NC}"
-    echo -e "${YELLOW}💡 Çözüm önerileri:${NC}"
-    echo -e "   1. Netlify hesabınıza credit ekleyin"
-    echo -e "   2. GitHub entegrasyonu ile otomatik deploy kullanın"
-    echo -e "   3. Netlify dashboard'dan manuel deploy yapın"
+    
+    if echo "$DEPLOY_ERROR" | grep -q "paused\|credit\|exceeded"; then
+        echo -e "${YELLOW}💡 Proje askıya alınmış veya limit aşılmış${NC}"
+        echo -e "${YELLOW}📋 Çözüm adımları:${NC}"
+        echo -e "   1. Netlify Dashboard → Site settings → General"
+        echo -e "   2. Build minutes kullanımını kontrol edin"
+        echo -e "   3. Yeni ay bekleyin veya plan yükseltin"
+        echo -e "   4. GitHub entegrasyonu kurulduysa otomatik deploy çalışacak"
+    else
+        echo -e "${YELLOW}💡 Çözüm önerileri:${NC}"
+        echo -e "   1. Netlify hesabınıza credit ekleyin"
+        echo -e "   2. GitHub entegrasyonu ile otomatik deploy kullanın"
+        echo -e "   3. Netlify dashboard'dan manuel deploy yapın"
+    fi
+    
     echo -e "\n${GREEN}✓ Git push başarılı - GitHub'da güncel${NC}"
+    echo -e "${BLUE}💡 GitHub entegrasyonu kuruluysa otomatik deploy başlayacak${NC}"
     exit 1
 fi
 
