@@ -16,12 +16,16 @@
         basePath = '/' + repoName + '/';
       }
       
-      // Orijinal path'i al (base path olmadan)
+      // Orijinal path'i al
       const currentPath = window.location.pathname;
       const pathWithoutBase = basePath === '/' ? currentPath : currentPath.replace(basePath, '/');
       
       // index.html'e yönlendir (path bilgisini koruyarak)
-      const redirectUrl = basePath + 'index.html' + (pathWithoutBase !== '/' ? '#' + pathWithoutBase : '');
+      // GitHub Pages 404 hatası verdiğinde bu dosya serve edilir
+      // Bu dosya index.html'e yönlendirir ve React Router path'i yakalar
+      const redirectUrl = basePath + 'index.html';
+      
+      // index.html'e yönlendir (path bilgisi URL'de kalacak)
       window.location.replace(redirectUrl);
     </script>
   </head>
