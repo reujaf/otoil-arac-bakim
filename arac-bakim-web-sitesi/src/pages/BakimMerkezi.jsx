@@ -386,7 +386,7 @@ function BakimMerkezi() {
     }
 
     // Mesaj metni
-    const mesaj = encodeURIComponent('En son 6 ay önce bakım yaptırdınız tekrar bakım yaptırmak isterseniz Otoil Araç Bakım\'a bekleriz.');
+    const mesaj = encodeURIComponent('En son 6 ay önce bakım yaptırdınız tekrar bakım yaptırmak isterseniz Otoil Araç Bakım\'a bekleriz.<br>Bu bir otomatik mesajdır.');
     
     // WhatsApp linki
     const whatsappUrl = `https://wa.me/${whatsappTelefon}?text=${mesaj}`;
