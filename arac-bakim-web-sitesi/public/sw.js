@@ -1,8 +1,10 @@
 // Service Worker for PWA
-const CACHE_NAME = 'otoil-arac-bakim-v2';
+const CACHE_NAME = 'otoil-arac-bakim-v3';
+// Base path'i dinamik olarak al
+const basePath = self.location.pathname.split('/').slice(0, -1).join('/') || '';
 const urlsToCache = [
-  '/',
-  '/index.html'
+  basePath + '/',
+  basePath + '/index.html'
 ];
 
 self.addEventListener('install', (event) => {

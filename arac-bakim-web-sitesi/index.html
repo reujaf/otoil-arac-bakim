@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/jpeg" href="/favicon.jpg" />
     <link rel="apple-touch-icon" href="/icon-192.png" />
-    <link rel="manifest" href="/manifest.json" />
+    <link rel="manifest" href="./manifest.json" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#26a9e0" />
     <meta name="description" content="OTOIL Araç Bakım Kayıt Sistemi - Müşteri bakımlarınızı kolayca yönetin, takip edin ve raporlayın" />
@@ -17,7 +17,10 @@
       // Service Worker Registration for PWA
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js')
+          // GitHub Pages için base path
+          const basePath = window.location.pathname.split('/').slice(0, -1).join('/') || '/';
+          const swPath = basePath === '/' ? '/sw.js' : basePath + '/sw.js';
+          navigator.serviceWorker.register(swPath)
             .then((registration) => {
               console.log('Service Worker registered:', registration);
             })
