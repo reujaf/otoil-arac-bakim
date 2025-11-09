@@ -268,7 +268,7 @@ function BakimMerkezi() {
         if (sorumlulukY < pageHeight - 30) {
           doc.setFontSize(7);
           doc.setTextColor(120, 120, 120);
-          const sorumlulukMetni = 'SORUMLULUK REDDI: Bu belgede yer alan sonuclar usta gorusu olup, anlik olarak yapilan kontrol sonuclaridir. Detayli muayene ve kesin tespit icin yetkili servislere basvurulmasi onerilir.';
+          const sorumlulukMetni = 'SORUMLULUK REDDI: Bu belgede yer alan sonuclar usta gorusu olup, anlik olarak yapilan kontrol sonuclaridir. OTOIL Yağ ve Bakım Merkezi bilgi verilen sorunlardan sorumlu değildir.';
           const sorumlulukLines = doc.splitTextToSize(sorumlulukMetni, pageWidth - 30 - 25);
           doc.text(sorumlulukLines, 14, sorumlulukY, {
             maxWidth: pageWidth - 30 - 25,
