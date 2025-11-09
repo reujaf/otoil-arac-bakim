@@ -5,6 +5,7 @@ import { collection, addDoc, Timestamp } from 'firebase/firestore';
 function HizmetKayitFormu() {
   const [formData, setFormData] = useState({
     adSoyad: '',
+    telefon: '',
     plaka: '',
     aracModeli: '',
     hizmetTarihi: '',
@@ -47,12 +48,36 @@ function HizmetKayitFormu() {
     return formattedTamSayi;
   };
 
+  const formatTelefon = (value) => {
+    // Sadece rakam kabul et
+    let cleaned = value.replace(/\D/g, '');
+    
+    // Maksimum 11 rakam (05XX XXX XX XX)
+    if (cleaned.length > 11) {
+      cleaned = cleaned.substring(0, 11);
+    }
+    
+    // Formatla: 05XX XXX XX XX
+    if (cleaned.length === 0) return '';
+    if (cleaned.length <= 4) return cleaned;
+    if (cleaned.length <= 7) return `${cleaned.substring(0, 4)} ${cleaned.substring(4)}`;
+    if (cleaned.length <= 9) return `${cleaned.substring(0, 4)} ${cleaned.substring(4, 7)} ${cleaned.substring(7)}`;
+    return `${cleaned.substring(0, 4)} ${cleaned.substring(4, 7)} ${cleaned.substring(7, 9)} ${cleaned.substring(9)}`;
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     
     // Fiyat alanı için özel formatlama
     if (name === 'alınanUcret') {
       const formatted = formatFiyat(value);
+      setFormData({ ...formData, [name]: formatted });
+      return;
+    }
+    
+    // Telefon alanı için özel formatlama
+    if (name === 'telefon') {
+      const formatted = formatTelefon(value);
       setFormData({ ...formData, [name]: formatted });
       return;
     }
@@ -85,6 +110,7 @@ function HizmetKayitFormu() {
       // Firestore'a kaydet
       const hizmetData = {
         adSoyad: formData.adSoyad.trim(),
+        telefon: formData.telefon.trim(),
         plaka: formData.plaka.toUpperCase(),
         aracModeli: formData.aracModeli,
         hizmetTarihi: Timestamp.fromDate(hizmetTarihiObj),
@@ -101,6 +127,7 @@ function HizmetKayitFormu() {
           // Formu temizle
           setFormData({
             adSoyad: '',
+            telefon: '',
             plaka: '',
             aracModeli: '',
             hizmetTarihi: '',
@@ -174,6 +201,23 @@ function HizmetKayitFormu() {
                 required
                 className="w-full py-3 px-4 border-2 border-gray-200 rounded-xl text-gray-700 placeholder-gray-400 focus:outline-none focus:border-[#26a9e0] focus:ring-2 focus:ring-[#26a9e0]/20 transition-all bg-gray-50 focus:bg-white"
                 placeholder="Müşteri adı soyadı"
+              />
+            </div>
+
+            {/* Telefon */}
+            <div>
+              <label htmlFor="telefon" className="block text-gray-700 text-sm font-semibold mb-2">
+                Telefon Numarası
+              </label>
+              <input
+                type="text"
+                id="telefon"
+                name="telefon"
+                value={formData.telefon}
+                onChange={handleChange}
+                inputMode="tel"
+                className="w-full py-3 px-4 border-2 border-gray-200 rounded-xl text-gray-700 placeholder-gray-400 focus:outline-none focus:border-[#26a9e0] focus:ring-2 focus:ring-[#26a9e0]/20 transition-all bg-gray-50 focus:bg-white"
+                placeholder="05XX XXX XX XX"
               />
             </div>
 
