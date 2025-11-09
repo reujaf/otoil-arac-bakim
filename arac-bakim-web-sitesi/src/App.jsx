@@ -41,9 +41,12 @@ function App() {
     );
   }
 
+  // GitHub Pages için base path
+  const basename = import.meta.env.BASE_URL || '/';
+
   return (
     <ErrorBoundary>
-      <Router>
+      <Router basename={basename}>
         <Routes>
           <Route
             path="/login"
