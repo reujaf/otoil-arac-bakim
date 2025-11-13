@@ -4,6 +4,7 @@ import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestor
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import html2canvas from 'html2canvas';
 import logo from '../assets/otoil-logo.png';
 
 function HizmetListesi() {
@@ -80,38 +81,10 @@ function HizmetListesi() {
     });
   };
 
-  // Türkçe karakterleri ASCII karakterlere çevir (PDF için)
-  const turkceKarakterCevir = (text) => {
-    if (!text) return '';
-    return String(text)
-      .replace(/ç/g, 'c')
-      .replace(/Ç/g, 'C')
-      .replace(/ğ/g, 'g')
-      .replace(/Ğ/g, 'G')
-      .replace(/ı/g, 'i')
-      .replace(/İ/g, 'I')
-      .replace(/ö/g, 'o')
-      .replace(/Ö/g, 'O')
-      .replace(/ş/g, 's')
-      .replace(/Ş/g, 'S')
-      .replace(/ü/g, 'u')
-      .replace(/Ü/g, 'U');
-  };
-
   const handlePDFOlustur = async (hizmet) => {
     try {
-      const doc = new jsPDF();
-      
-      // Sayfa boyutları
-      const pageWidth = doc.internal.pageSize.getWidth();
-      const pageHeight = doc.internal.pageSize.getHeight();
-      
-      // Sağ tarafta modern mavi dikey çubuk
-      doc.setFillColor(66, 139, 202); // Mavi renk
-      doc.rect(pageWidth - 25, 0, 25, pageHeight, 'F');
-      
-      // Logo ekleme
-      let logoHeight = 0;
+      // Logo'yu base64'e çevir
+      let logoBase64 = '';
       try {
         const img = new Image();
         img.crossOrigin = 'anonymous';
@@ -121,10 +94,12 @@ function HizmetListesi() {
           img.onload = () => {
             clearTimeout(timeout);
             try {
-              // Logo boyutlarını ayarla (genişlik 35mm, yükseklik orantılı)
-              const logoWidth = 35;
-              logoHeight = (img.height * logoWidth) / img.width;
-              doc.addImage(img, 'PNG', 14, 12, logoWidth, logoHeight);
+              const canvas = document.createElement('canvas');
+              canvas.width = img.width;
+              canvas.height = img.height;
+              const ctx = canvas.getContext('2d');
+              ctx.drawImage(img, 0, 0);
+              logoBase64 = canvas.toDataURL('image/png');
               resolve();
             } catch (error) {
               reject(error);
@@ -136,79 +111,209 @@ function HizmetListesi() {
           };
         });
       } catch (error) {
-        console.error('Logo PDF\'e eklenirken hata:', error);
-        logoHeight = 0;
+        console.warn('Logo base64\'e çevrilemedi:', error);
       }
       
-      // Başlık - Logo altında yazı yok, direkt başlık
-      const startY = logoHeight > 0 ? logoHeight + 15 : 20;
-      doc.setFontSize(16);
-      doc.setTextColor(40, 40, 40);
-      doc.text('Arac Bakim Hizmet Formu', 14, startY);
-      
-      // Tarih - sağa hizalı (mavi çubuktan önce)
-      doc.setFontSize(10);
-      doc.setTextColor(100, 100, 100);
-      const tarihText = formatDateShort(hizmet.hizmetTarihi);
-      const tarihWidth = doc.getTextWidth(tarihText);
-      doc.text(tarihText, pageWidth - 30 - tarihWidth, startY);
-      
-      // Tablo verileri - Türkçe karakterleri ASCII'ye çevir
+      // HTML içeriğini oluştur (Türkçe karakter desteği için)
       const musteriAdi = getMusteriAdi(hizmet);
-      const tableData = [
-        ['Musteri Adi Soyadi', turkceKarakterCevir(musteriAdi)],
-        ['Plaka', turkceKarakterCevir(hizmet.plaka || '')],
-        ['Arac Modeli', turkceKarakterCevir(hizmet.aracModeli || '')],
-        ['Hizmet Tarihi', formatDateShort(hizmet.hizmetTarihi)],
-        ['Yapilan Islemler', turkceKarakterCevir(hizmet.yapilanIslemler || '')],
-        ['Alinan Ucret', `${formatFiyat(hizmet.alınanUcret)} TL`],
-      ];
-
-      // Modern tablo tasarımı
-      autoTable(doc, {
-        startY: startY + 25,
-        head: [['Bilgi', 'Deger']],
-        body: tableData,
-        theme: 'striped',
-        headStyles: { 
-          fillColor: [66, 139, 202],
-          textColor: [255, 255, 255],
-          fontStyle: 'bold',
-          fontSize: 11,
-        },
-        bodyStyles: {
-          fontSize: 10,
-          textColor: [40, 40, 40],
-        },
-        alternateRowStyles: {
-          fillColor: [245, 247, 250],
-        },
-        styles: { 
-          fontSize: 10,
-          cellPadding: 5,
-        },
-        columnStyles: {
-          0: { 
-            cellWidth: 60,
-            fontStyle: 'bold',
-            textColor: [66, 139, 202],
-          },
-          1: { 
-            cellWidth: pageWidth - 30 - 60 - 25, // Sağdaki mavi çubuk için alan bırak
-          },
-        },
-        margin: { left: 14, right: 25 },
+      
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="UTF-8">
+          <style>
+            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+            * {
+              margin: 0;
+              padding: 0;
+              box-sizing: border-box;
+            }
+            html, body {
+              width: 210mm;
+              min-height: 297mm;
+              font-family: 'Inter', 'Arial', 'Helvetica', sans-serif;
+              font-size: 10pt;
+              color: #282828;
+              padding: 20mm 20mm 20mm 20mm;
+              background: white;
+              margin: 0;
+            }
+            .header {
+              margin-bottom: 25px;
+              position: relative;
+            }
+            .header img {
+              display: block;
+              margin-bottom: 15px;
+            }
+            .title {
+              font-size: 16pt;
+              font-weight: 700;
+              color: #282828;
+              margin-bottom: 5px;
+            }
+            .date {
+              font-size: 10pt;
+              color: #646464;
+              position: absolute;
+              top: 0;
+              right: 0;
+            }
+            table {
+              width: 100%;
+              border-collapse: collapse;
+              margin-top: 20px;
+            }
+            thead {
+              background-color: #428bca;
+              color: white;
+            }
+            th {
+              padding: 5px;
+              text-align: left;
+              font-weight: 600;
+              font-size: 11pt;
+            }
+            td {
+              padding: 5px;
+              border-bottom: 1px solid #f5f7fa;
+              font-size: 10pt;
+            }
+            tbody tr:nth-child(even) {
+              background-color: #f5f7fa;
+            }
+            tbody tr:last-child td {
+              border-bottom: none;
+            }
+            .label {
+              font-weight: 600;
+              color: #428bca;
+              width: 60mm;
+            }
+            .footer {
+              margin-top: 30px;
+              font-size: 9pt;
+              color: #646464;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            ${logoBase64 ? `<img src="${logoBase64}" alt="OTOIL Logo" style="height: 40px; margin-bottom: 10px;" />` : ''}
+            <div class="title">Araç Bakım Hizmet Formu</div>
+            <div class="date">${formatDateShort(hizmet.hizmetTarihi)}</div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Bilgi</th>
+                <th>Değer</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="label">Müşteri Adı Soyadı</td>
+                <td>${musteriAdi}</td>
+              </tr>
+              <tr>
+                <td class="label">Plaka</td>
+                <td>${hizmet.plaka || ''}</td>
+              </tr>
+              <tr>
+                <td class="label">Araç Modeli</td>
+                <td>${hizmet.aracModeli || ''}</td>
+              </tr>
+              <tr>
+                <td class="label">Hizmet Tarihi</td>
+                <td>${formatDateShort(hizmet.hizmetTarihi)}</td>
+              </tr>
+              <tr>
+                <td class="label">Yapılan İşlemler</td>
+                <td>${(hizmet.yapilanIslemler || '').replace(/\n/g, '<br>')}</td>
+              </tr>
+              <tr>
+                <td class="label">Alınan Ücret</td>
+                <td>${formatFiyat(hizmet.alınanUcret)} TL</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="footer">
+            <div>OTOIL Yağ ve Bakım Merkezi</div>
+            <div>www.otoil.com | info@otoil.com</div>
+          </div>
+        </body>
+        </html>
+      `;
+      
+      // Geçici bir div oluştur ve HTML içeriğini ekle
+      const tempDiv = document.createElement('div');
+      tempDiv.style.position = 'absolute';
+      tempDiv.style.left = '-9999px';
+      tempDiv.style.top = '0';
+      tempDiv.style.width = '210mm'; // A4 genişliği (mm)
+      tempDiv.style.maxWidth = '210mm';
+      tempDiv.style.backgroundColor = '#ffffff';
+      tempDiv.innerHTML = htmlContent;
+      document.body.appendChild(tempDiv);
+      
+      // Font'un yüklenmesini bekle
+      await new Promise((resolve) => {
+        if (document.fonts && document.fonts.ready) {
+          document.fonts.ready.then(() => {
+            setTimeout(resolve, 500); // Ekstra bekleme süresi
+          });
+        } else {
+          setTimeout(resolve, 1000); // Fallback: 1 saniye bekle
+        }
       });
       
-      // Alt kısım - Şirket bilgileri
-      const finalY = doc.lastAutoTable.finalY + 15;
-      if (finalY < pageHeight - 40) {
-        doc.setFontSize(9);
-        doc.setTextColor(100, 100, 100);
-        doc.text('OTOIL Yag ve Bakim Merkezi', 14, pageHeight - 25);
-        doc.setFontSize(8);
-        doc.text('www.otoil.com | info@otoil.com', 14, pageHeight - 18);
-      }
+      // html2canvas ile HTML'i canvas'a çevir
+      const canvas = await html2canvas(tempDiv, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff',
+        width: tempDiv.scrollWidth,
+        height: tempDiv.scrollHeight,
+        windowWidth: tempDiv.scrollWidth,
+        windowHeight: tempDiv.scrollHeight,
+        allowTaint: false,
+        foreignObjectRendering: false
+      });
+      
+      // Canvas'ı kaldır
+      document.body.removeChild(tempDiv);
+      
+      // Canvas boyutlarını al ve PDF'e ekle
+      const pdfWidth = 210; // A4 genişliği (mm)
+      const pdfHeight = 297; // A4 yüksekliği (mm)
+      const marginLeft = 14; // Sol kenar boşluğu
+      const marginTop = 14; // Üst kenar boşluğu
+      const blueBarWidth = 15; // Mavi çubuk genişliği
+      const gapBetweenContentAndBar = 10; // Tablo ile mavi çubuk arasındaki boşluk
+      const marginRight = blueBarWidth + gapBetweenContentAndBar; // Sağdaki mavi çubuk + boşluk için alan
+      const contentWidth = pdfWidth - marginLeft - marginRight; // İçerik genişliği
+      const imgWidth = contentWidth;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      
+      // PDF oluştur
+      const doc = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4',
+        compress: true
+      });
+      
+      // Sağ tarafta mavi çubuk
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      doc.setFillColor(66, 139, 202);
+      doc.rect(pageWidth - blueBarWidth, 0, blueBarWidth, pageHeight, 'F');
+      
+      // Canvas'ı PDF'e ekle (kenar boşluklarıyla)
+      const imgData = canvas.toDataURL('image/png', 1.0);
+      doc.addImage(imgData, 'PNG', marginLeft, marginTop, imgWidth, imgHeight);
 
       // PDF'i indir
       const fileName = `${hizmet.plaka.replace(/\s/g, '-')}-hizmet-formu.pdf`;
