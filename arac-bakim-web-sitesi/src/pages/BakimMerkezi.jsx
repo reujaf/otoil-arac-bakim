@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { db, auth } from '../firebaseConfig';
-import { collection, query, onSnapshot } from 'firebase/firestore';
+import { collection, query, onSnapshot, doc, updateDoc, Timestamp } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
 import BottomNavigation from '../components/BottomNavigation';
@@ -16,6 +16,9 @@ function BakimMerkezi() {
   const [user, setUser] = useState(null);
   const [aramaMetni, setAramaMetni] = useState('');
   const [selectedHizmet, setSelectedHizmet] = useState(null);
+  const [editingHizmet, setEditingHizmet] = useState(null);
+  const [editFormData, setEditFormData] = useState({});
+  const [isUpdating, setIsUpdating] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -479,6 +482,144 @@ function BakimMerkezi() {
     }
   };
 
+  // Fiyat formatlama fonksiyonu
+  const formatFiyatInput = (value) => {
+    let cleaned = value.replace(/[^\d,]/g, '');
+    const parts = cleaned.split(',');
+    if (parts.length > 1) {
+      cleaned = parts[0] + ',' + parts[1].substring(0, 2);
+    }
+    if (!cleaned) return '';
+    const numStr = parts[0].replace(/\./g, '');
+    if (!numStr) return cleaned;
+    const numValue = parseFloat(numStr);
+    if (isNaN(numValue) || numValue < 0) return cleaned;
+    const formattedTamSayi = numValue.toLocaleString('tr-TR');
+    if (parts.length > 1) {
+      const ondalik = parts[1].padEnd(2, '0').substring(0, 2);
+      return formattedTamSayi + ',' + ondalik;
+    }
+    return formattedTamSayi;
+  };
+
+  // Telefon formatlama fonksiyonu
+  const formatTelefonInput = (value) => {
+    let cleaned = value.replace(/\D/g, '');
+    if (cleaned.length > 11) {
+      cleaned = cleaned.substring(0, 11);
+    }
+    if (cleaned.length === 0) return '';
+    if (cleaned.length <= 4) return cleaned;
+    if (cleaned.length <= 7) return `${cleaned.substring(0, 4)} ${cleaned.substring(4)}`;
+    if (cleaned.length <= 9) return `${cleaned.substring(0, 4)} ${cleaned.substring(4, 7)} ${cleaned.substring(7)}`;
+    return `${cleaned.substring(0, 4)} ${cleaned.substring(4, 7)} ${cleaned.substring(7, 9)} ${cleaned.substring(9)}`;
+  };
+
+  // Düzenleme modunu aç
+  const handleEdit = (hizmet) => {
+    // Tarihleri formatla (YYYY-MM-DD)
+    const hizmetTarihi = hizmet.hizmetTarihi ? hizmet.hizmetTarihi.toDate().toISOString().split('T')[0] : '';
+    const sonrakiBakimTarihi = hizmet.sonrakiBakimTarihi ? hizmet.sonrakiBakimTarihi.toDate().toISOString().split('T')[0] : '';
+    
+    // Fiyatı formatla (Türk formatına çevir: 1500.00 -> 1.500,00)
+    let fiyat = '';
+    if (hizmet.alınanUcret !== undefined && hizmet.alınanUcret !== null) {
+      fiyat = formatFiyat(hizmet.alınanUcret);
+    }
+    
+    setEditFormData({
+      adSoyad: hizmet.adSoyad || (hizmet.isim && hizmet.soyisim ? `${hizmet.isim} ${hizmet.soyisim}` : ''),
+      telefon: hizmet.telefon || '',
+      plaka: hizmet.plaka || '',
+      aracModeli: hizmet.aracModeli || '',
+      hizmetTarihi: hizmetTarihi,
+      sonrakiBakimTarihi: sonrakiBakimTarihi,
+      yapilanIslemler: hizmet.yapilanIslemler || '',
+      fullCheckupSonucu: hizmet.fullCheckupSonucu || '',
+      alınanUcret: fiyat,
+      personel: hizmet.personel || 'Şahin Lale',
+    });
+    setEditingHizmet(hizmet.id);
+    setSelectedHizmet(null); // Detay modalını kapat
+  };
+
+  // Düzenleme formu değişiklikleri
+  const handleEditChange = (e) => {
+    const { name, value } = e.target;
+    
+    if (name === 'alınanUcret') {
+      const formatted = formatFiyatInput(value);
+      setEditFormData({ ...editFormData, [name]: formatted });
+      return;
+    }
+    
+    if (name === 'telefon') {
+      const formatted = formatTelefonInput(value);
+      setEditFormData({ ...editFormData, [name]: formatted });
+      return;
+    }
+    
+    setEditFormData({ ...editFormData, [name]: value });
+  };
+
+  // Kaydı güncelle
+  const handleUpdate = async () => {
+    if (!editingHizmet) return;
+
+    try {
+      setIsUpdating(true);
+
+      // Tarihleri Timestamp'e çevir
+      const hizmetTarihiObj = new Date(editFormData.hizmetTarihi);
+      const sonrakiBakimTarihiObj = editFormData.sonrakiBakimTarihi 
+        ? new Date(editFormData.sonrakiBakimTarihi)
+        : null;
+
+      // Fiyat değerini temizle ve parse et
+      const ucretDegeri = editFormData.alınanUcret.toString().replace(/\./g, '').replace(',', '.');
+      const ucret = parseFloat(ucretDegeri) || 0;
+
+      // Güncelleme verisi
+      const updateData = {
+        adSoyad: editFormData.adSoyad.trim(),
+        telefon: editFormData.telefon.trim(),
+        plaka: editFormData.plaka.toUpperCase(),
+        aracModeli: editFormData.aracModeli,
+        hizmetTarihi: Timestamp.fromDate(hizmetTarihiObj),
+        yapilanIslemler: editFormData.yapilanIslemler,
+        fullCheckupSonucu: editFormData.fullCheckupSonucu.trim(),
+        alınanUcret: ucret,
+        personel: editFormData.personel || 'Şahin Lale',
+      };
+
+      // Sonraki bakım tarihi varsa ekle
+      if (sonrakiBakimTarihiObj) {
+        updateData.sonrakiBakimTarihi = Timestamp.fromDate(sonrakiBakimTarihiObj);
+      }
+
+      // Firestore'da güncelle
+      const hizmetRef = doc(db, 'hizmetler', editingHizmet);
+      await updateDoc(hizmetRef, updateData);
+
+      // Düzenleme modunu kapat
+      setEditingHizmet(null);
+      setEditFormData({});
+      setIsUpdating(false);
+      
+      alert('Kayıt başarıyla güncellendi!');
+    } catch (error) {
+      console.error('Güncelleme hatası:', error);
+      setIsUpdating(false);
+      alert('Kayıt güncellenirken bir hata oluştu: ' + error.message);
+    }
+  };
+
+  // Düzenleme modunu iptal et
+  const handleCancelEdit = () => {
+    setEditingHizmet(null);
+    setEditFormData({});
+  };
+
   // WhatsApp mesajı gönder
   const handleWhatsAppMesaj = (hizmet) => {
     if (!hizmet.telefon) {
@@ -721,7 +862,16 @@ function BakimMerkezi() {
                           <p className="text-xl font-bold text-blue-900 mt-1">{formatFiyat(hizmet.alınanUcret)} ₺</p>
                         </div>
                       </div>
-                      <div className="mt-6 flex justify-end gap-3">
+                      <div className="mt-6 flex justify-end gap-3 flex-wrap">
+                        <button
+                          onClick={() => handleEdit(hizmet)}
+                          className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg font-semibold shadow-md hover:shadow-lg transition-all flex items-center space-x-2"
+                        >
+                          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                          </svg>
+                          <span>Düzenle</span>
+                        </button>
                         {isBakimiGecmis(hizmet.sonrakiBakimTarihi) && hizmet.telefon && (
                           <button
                             onClick={() => handleWhatsAppMesaj(hizmet)}
@@ -743,6 +893,236 @@ function BakimMerkezi() {
                     </div>
                   );
                 })()}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Düzenleme Modal */}
+        {editingHizmet && (
+          <div 
+            className="fixed inset-0 bg-gray-900 bg-opacity-50 backdrop-blur-sm overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4"
+            onClick={handleCancelEdit}
+          >
+            <div 
+              className="relative bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="p-6">
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-2xl font-bold text-gray-900">Kayıt Düzenle</h3>
+                  <button
+                    onClick={handleCancelEdit}
+                    className="text-gray-400 hover:text-gray-600 text-2xl font-bold w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"
+                  >
+                    ×
+                  </button>
+                </div>
+
+                <form onSubmit={(e) => { e.preventDefault(); handleUpdate(); }} className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Ad Soyad */}
+                    <div className="md:col-span-2">
+                      <label htmlFor="edit-adSoyad" className="block text-gray-700 text-sm font-semibold mb-2">
+                        Ad Soyad *
+                      </label>
+                      <input
+                        type="text"
+                        id="edit-adSoyad"
+                        name="adSoyad"
+                        value={editFormData.adSoyad || ''}
+                        onChange={handleEditChange}
+                        required
+                        className="w-full py-3 px-4 border-2 border-gray-200 rounded-xl text-gray-700 placeholder-gray-400 focus:outline-none focus:border-[#26a9e0] focus:ring-2 focus:ring-[#26a9e0]/20 transition-all bg-gray-50 focus:bg-white"
+                        placeholder="Müşteri adı soyadı"
+                      />
+                    </div>
+
+                    {/* Telefon */}
+                    <div>
+                      <label htmlFor="edit-telefon" className="block text-gray-700 text-sm font-semibold mb-2">
+                        Telefon Numarası
+                      </label>
+                      <input
+                        type="text"
+                        id="edit-telefon"
+                        name="telefon"
+                        value={editFormData.telefon || ''}
+                        onChange={handleEditChange}
+                        inputMode="tel"
+                        className="w-full py-3 px-4 border-2 border-gray-200 rounded-xl text-gray-700 placeholder-gray-400 focus:outline-none focus:border-[#26a9e0] focus:ring-2 focus:ring-[#26a9e0]/20 transition-all bg-gray-50 focus:bg-white"
+                        placeholder="05XX XXX XX XX"
+                      />
+                    </div>
+
+                    {/* Plaka */}
+                    <div>
+                      <label htmlFor="edit-plaka" className="block text-gray-700 text-sm font-semibold mb-2">
+                        Plaka *
+                      </label>
+                      <input
+                        type="text"
+                        id="edit-plaka"
+                        name="plaka"
+                        value={editFormData.plaka || ''}
+                        onChange={handleEditChange}
+                        required
+                        className="w-full py-3 px-4 border-2 border-gray-200 rounded-xl text-gray-700 placeholder-gray-400 focus:outline-none focus:border-[#26a9e0] focus:ring-2 focus:ring-[#26a9e0]/20 transition-all bg-gray-50 focus:bg-white uppercase"
+                        placeholder="34 ABC 123"
+                      />
+                    </div>
+
+                    {/* Araç Modeli */}
+                    <div>
+                      <label htmlFor="edit-aracModeli" className="block text-gray-700 text-sm font-semibold mb-2">
+                        Araç Modeli *
+                      </label>
+                      <input
+                        type="text"
+                        id="edit-aracModeli"
+                        name="aracModeli"
+                        value={editFormData.aracModeli || ''}
+                        onChange={handleEditChange}
+                        required
+                        className="w-full py-3 px-4 border-2 border-gray-200 rounded-xl text-gray-700 placeholder-gray-400 focus:outline-none focus:border-[#26a9e0] focus:ring-2 focus:ring-[#26a9e0]/20 transition-all bg-gray-50 focus:bg-white"
+                        placeholder="Örn: Toyota Corolla 2020"
+                      />
+                    </div>
+
+                    {/* Hizmet Tarihi */}
+                    <div>
+                      <label htmlFor="edit-hizmetTarihi" className="block text-gray-700 text-sm font-semibold mb-2">
+                        Hizmet Tarihi *
+                      </label>
+                      <input
+                        type="date"
+                        id="edit-hizmetTarihi"
+                        name="hizmetTarihi"
+                        value={editFormData.hizmetTarihi || ''}
+                        onChange={handleEditChange}
+                        required
+                        className="w-full py-3 px-4 border-2 border-gray-200 rounded-xl text-gray-700 focus:outline-none focus:border-[#26a9e0] focus:ring-2 focus:ring-[#26a9e0]/20 transition-all bg-gray-50 focus:bg-white"
+                      />
+                    </div>
+
+                    {/* Sonraki Bakım Tarihi */}
+                    <div>
+                      <label htmlFor="edit-sonrakiBakimTarihi" className="block text-gray-700 text-sm font-semibold mb-2">
+                        Sonraki Bakım Tarihi
+                      </label>
+                      <input
+                        type="date"
+                        id="edit-sonrakiBakimTarihi"
+                        name="sonrakiBakimTarihi"
+                        value={editFormData.sonrakiBakimTarihi || ''}
+                        onChange={handleEditChange}
+                        className="w-full py-3 px-4 border-2 border-gray-200 rounded-xl text-gray-700 focus:outline-none focus:border-[#26a9e0] focus:ring-2 focus:ring-[#26a9e0]/20 transition-all bg-gray-50 focus:bg-white"
+                      />
+                    </div>
+
+                    {/* Alınan Ücret */}
+                    <div>
+                      <label htmlFor="edit-alınanUcret" className="block text-gray-700 text-sm font-semibold mb-2">
+                        Alınan Ücret (₺) *
+                      </label>
+                      <input
+                        type="text"
+                        id="edit-alınanUcret"
+                        name="alınanUcret"
+                        value={editFormData.alınanUcret || ''}
+                        onChange={handleEditChange}
+                        inputMode="numeric"
+                        pattern="[0-9.,]*"
+                        required
+                        className="w-full py-3 px-4 border-2 border-gray-200 rounded-xl text-gray-700 placeholder-gray-400 focus:outline-none focus:border-[#26a9e0] focus:ring-2 focus:ring-[#26a9e0]/20 transition-all bg-gray-50 focus:bg-white"
+                        placeholder="0,00"
+                      />
+                    </div>
+
+                    {/* Personel */}
+                    <div>
+                      <label htmlFor="edit-personel" className="block text-gray-700 text-sm font-semibold mb-2">
+                        Personel
+                      </label>
+                      <input
+                        type="text"
+                        id="edit-personel"
+                        name="personel"
+                        value={editFormData.personel || ''}
+                        onChange={handleEditChange}
+                        className="w-full py-3 px-4 border-2 border-gray-200 rounded-xl text-gray-700 placeholder-gray-400 focus:outline-none focus:border-[#26a9e0] focus:ring-2 focus:ring-[#26a9e0]/20 transition-all bg-gray-50 focus:bg-white"
+                        placeholder="Şahin Lale"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Yapılan İşlemler */}
+                  <div>
+                    <label htmlFor="edit-yapilanIslemler" className="block text-gray-700 text-sm font-semibold mb-2">
+                      Yapılan İşlemler *
+                    </label>
+                    <textarea
+                      id="edit-yapilanIslemler"
+                      name="yapilanIslemler"
+                      value={editFormData.yapilanIslemler || ''}
+                      onChange={handleEditChange}
+                      required
+                      rows="4"
+                      className="w-full py-3 px-4 border-2 border-gray-200 rounded-xl text-gray-700 placeholder-gray-400 focus:outline-none focus:border-[#26a9e0] focus:ring-2 focus:ring-[#26a9e0]/20 transition-all bg-gray-50 focus:bg-white resize-none"
+                      placeholder="Yapılan işlemleri detaylı olarak yazın..."
+                    />
+                  </div>
+
+                  {/* Full Check-up Sonucu */}
+                  <div>
+                    <label htmlFor="edit-fullCheckupSonucu" className="block text-gray-700 text-sm font-semibold mb-2">
+                      Full Check-up Sonucu
+                    </label>
+                    <textarea
+                      id="edit-fullCheckupSonucu"
+                      name="fullCheckupSonucu"
+                      value={editFormData.fullCheckupSonucu || ''}
+                      onChange={handleEditChange}
+                      rows="4"
+                      className="w-full py-3 px-4 border-2 border-gray-200 rounded-xl text-gray-700 placeholder-gray-400 focus:outline-none focus:border-[#26a9e0] focus:ring-2 focus:ring-[#26a9e0]/20 transition-all bg-gray-50 focus:bg-white resize-none"
+                      placeholder="Full check-up sonuçları ve notlarınızı buraya yazabilirsiniz..."
+                    />
+                  </div>
+
+                  {/* Butonlar */}
+                  <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
+                    <button
+                      type="button"
+                      onClick={handleCancelEdit}
+                      disabled={isUpdating}
+                      className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-3 rounded-lg font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      İptal
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={isUpdating}
+                      className="bg-gradient-to-r from-[#26a9e0] to-[#1e8fc4] hover:from-[#1e8fc4] hover:to-[#26a9e0] disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3 px-8 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#26a9e0] focus:ring-offset-2 shadow-lg hover:shadow-xl transition-all transform hover:scale-[1.02] disabled:transform-none flex items-center space-x-2"
+                    >
+                      {isUpdating ? (
+                        <>
+                          <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          <span>Güncelleniyor...</span>
+                        </>
+                      ) : (
+                        <>
+                          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                          <span>Güncelle</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </form>
               </div>
             </div>
           </div>
