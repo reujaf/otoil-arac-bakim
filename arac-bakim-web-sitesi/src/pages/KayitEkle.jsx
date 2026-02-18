@@ -13,40 +13,24 @@ function KayitEkle() {
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((currentUser) => {
       setUser(currentUser);
-      if (!currentUser) {
-        navigate('/login');
-      }
+      if (!currentUser) navigate('/login');
     });
-
     return () => unsubscribe();
   }, [navigate]);
 
   const handleLogout = async () => {
-    try {
-      await signOut(auth);
-      navigate('/login');
-    } catch (error) {
-      console.error('Çıkış yapılırken hata:', error);
-    }
+    try { await signOut(auth); navigate('/login'); } catch (e) { console.error(e); }
   };
 
   return (
-    <div className="min-h-screen bg-white pb-16">
-      {/* Modern Navigation */}
-      <nav className="bg-white border-b border-gray-100">
+    <div className="glass-bg pb-24">
+      <nav className="glass-card-solid sticky top-0 z-30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center">
-              <img src={logo} alt="OTOIL Logo" className="h-[52px] w-auto cursor-pointer" onClick={() => navigate('/')} />
-            </div>
-            <div className="flex items-center space-x-6">
-              <span className="hidden md:block text-sm text-gray-600">
-                {user?.email}
-              </span>
-              <button
-                onClick={handleLogout}
-                className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-              >
+          <div className="flex justify-between items-center py-3">
+            <img src={logo} alt="OTOIL" className="h-9 w-auto cursor-pointer" onClick={() => navigate('/')} />
+            <div className="flex items-center gap-3">
+              <span className="hidden md:block text-xs text-slate-500 truncate max-w-[120px]">{user?.email}</span>
+              <button onClick={handleLogout} className="glass-btn-white text-slate-600 px-3 py-1.5 rounded-xl text-xs font-medium">
                 Çıkış
               </button>
             </div>
@@ -54,13 +38,12 @@ function KayitEkle() {
         </div>
       </nav>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
         <HizmetKayitFormu />
-          </main>
-          <BottomNavigation />
-        </div>
-      );
-    }
+      </main>
+      <BottomNavigation />
+    </div>
+  );
+}
 
-    export default KayitEkle;
-
+export default KayitEkle;
