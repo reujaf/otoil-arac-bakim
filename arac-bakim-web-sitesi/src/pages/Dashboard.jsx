@@ -126,24 +126,26 @@ function Dashboard() {
             <h2 className="text-base font-bold text-slate-800">Günlük ciro</h2>
           </div>
           {gunlukCiroVerileri.length > 0 ? (
-            <ResponsiveContainer width="100%" height={180}>
-              <AreaChart data={gunlukCiroVerileri} margin={{ top: 8, right: 8, left: -20, bottom: 4 }}>
-                <defs>
-                  <linearGradient id="ciroGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#26a9e0" stopOpacity={0.35} />
-                    <stop offset="100%" stopColor="#26a9e0" stopOpacity={0.02} />
-                  </linearGradient>
-                </defs>
-                <XAxis dataKey="gun" stroke="#94a3b8" style={{ fontSize: 11 }} tickLine={false} axisLine={false} />
-                <YAxis stroke="#94a3b8" style={{ fontSize: 10 }} tickFormatter={(v) => (v >= 1000 ? `${(v / 1000).toFixed(0)}K` : v)} tickLine={false} axisLine={false} />
-                <Tooltip
-                  contentStyle={{ background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.5)', borderRadius: 16, boxShadow: '0 8px 32px rgba(0,0,0,0.08)', fontSize: 13 }}
-                  formatter={(v) => [`${fmt(v)} ₺`, 'Ciro']}
-                  labelFormatter={(_, p) => p?.[0]?.payload?.tarih || ''}
-                />
-                <Area type="natural" dataKey="ciro" stroke="#26a9e0" strokeWidth={2.5} fill="url(#ciroGrad)" fillOpacity={1} animationDuration={800} />
-              </AreaChart>
-            </ResponsiveContainer>
+            <div className="overflow-hidden rounded-xl">
+              <ResponsiveContainer width="100%" height={180}>
+                <AreaChart data={gunlukCiroVerileri} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="ciroGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#26a9e0" stopOpacity={0.25} />
+                      <stop offset="100%" stopColor="#26a9e0" stopOpacity={0.02} />
+                    </linearGradient>
+                  </defs>
+                  <XAxis dataKey="gun" stroke="#94a3b8" style={{ fontSize: 11 }} tickLine={false} axisLine={false} />
+                  <YAxis stroke="#94a3b8" style={{ fontSize: 10 }} tickFormatter={(v) => (v >= 1000 ? `${(v / 1000).toFixed(0)}K` : v)} tickLine={false} axisLine={false} domain={[0, 'auto']} />
+                  <Tooltip
+                    contentStyle={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, boxShadow: '0 4px 12px rgba(0,0,0,0.06)', fontSize: 13 }}
+                    formatter={(v) => [`${fmt(v)} ₺`, 'Ciro']}
+                    labelFormatter={(_, p) => p?.[0]?.payload?.tarih || ''}
+                  />
+                  <Area type="monotone" dataKey="ciro" stroke="#26a9e0" strokeWidth={2.5} fill="url(#ciroGrad)" fillOpacity={1} animationDuration={800} baseValue={0} />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
           ) : (
             <div className="h-[180px] flex items-center justify-center text-slate-400 text-sm">Veri yükleniyor...</div>
           )}

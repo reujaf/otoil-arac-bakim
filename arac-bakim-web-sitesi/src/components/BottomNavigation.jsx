@@ -44,11 +44,9 @@ function BottomNavigation() {
       <nav
         className="pointer-events-auto flex items-center justify-around w-full max-w-md h-[62px] rounded-[22px] px-1.5"
         style={{
-          background: 'rgba(255, 255, 255, 0.65)',
-          backdropFilter: 'saturate(180%) blur(20px)',
-          WebkitBackdropFilter: 'saturate(180%) blur(20px)',
-          border: '1px solid rgba(255, 255, 255, 0.7)',
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255,255,255,0.35) inset',
+          background: '#ffffff',
+          border: '1px solid #e2e8f0',
+          boxShadow: '0 -1px 3px rgba(0,0,0,0.04), 0 8px 24px rgba(0, 0, 0, 0.08)',
         }}
       >
         {navItems.map((item) => {
@@ -66,11 +64,11 @@ function BottomNavigation() {
                   className="absolute inset-x-1.5 top-1/2 -translate-y-1/2 h-[46px] rounded-2xl"
                   style={{
                     background: 'linear-gradient(135deg, #26a9e0, #1e8fc4)',
-                    boxShadow: '0 4px 14px rgba(38, 169, 224, 0.35), 0 0 0 1px rgba(255,255,255,0.2) inset',
+                    boxShadow: '0 4px 14px rgba(38, 169, 224, 0.3)',
                   }}
                 />
               )}
-              <span className={`relative z-10 flex items-center justify-center transition-colors ${active ? 'text-white' : 'text-slate-500'}`}>
+              <span className={`relative z-10 flex items-center justify-center transition-colors ${active ? 'text-white' : 'text-slate-400'}`}>
                 {item.icon}
               </span>
               <span className={`relative z-10 text-[10px] font-semibold mt-0.5 truncate max-w-full px-1 ${active ? 'text-white' : 'text-slate-400'}`}>

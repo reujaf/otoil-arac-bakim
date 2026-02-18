@@ -870,21 +870,21 @@ function BakimMerkezi() {
             onClick={handleCancelEdit}
           >
             <div 
-              className="relative glass-modal rounded-3xl w-full max-w-4xl max-h-[90vh] overflow-y-auto"
+              className="relative glass-modal rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto overflow-x-hidden"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="p-6">
+              <div className="p-5">
                 <div className="flex justify-between items-center mb-5">
                   <h3 className="text-xl font-bold text-slate-800">Kayıt Düzenle</h3>
                   <button onClick={handleCancelEdit} className="text-slate-400 hover:text-slate-600 text-xl font-bold w-8 h-8 flex items-center justify-center rounded-xl glass-btn-white">×</button>
                 </div>
 
-                <form onSubmit={(e) => { e.preventDefault(); handleUpdate(); }} className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="md:col-span-2">
-                      <label htmlFor="edit-adSoyad" className="block text-slate-600 text-xs font-semibold mb-1.5">Ad Soyad *</label>
-                      <input type="text" id="edit-adSoyad" name="adSoyad" value={editFormData.adSoyad || ''} onChange={handleEditChange} required className="glass-input w-full py-2.5 px-4 rounded-2xl text-sm text-slate-700 placeholder-slate-400 focus:outline-none" placeholder="Müşteri adı soyadı" />
-                    </div>
+                <form onSubmit={(e) => { e.preventDefault(); handleUpdate(); }} className="space-y-3">
+                  <div>
+                    <label htmlFor="edit-adSoyad" className="block text-slate-600 text-xs font-semibold mb-1.5">Ad Soyad *</label>
+                    <input type="text" id="edit-adSoyad" name="adSoyad" value={editFormData.adSoyad || ''} onChange={handleEditChange} required className="glass-input w-full py-2.5 px-4 rounded-2xl text-sm text-slate-700 placeholder-slate-400 focus:outline-none" placeholder="Müşteri adı soyadı" />
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label htmlFor="edit-telefon" className="block text-slate-600 text-xs font-semibold mb-1.5">Telefon</label>
                       <input type="text" id="edit-telefon" name="telefon" value={editFormData.telefon || ''} onChange={handleEditChange} inputMode="tel" className="glass-input w-full py-2.5 px-4 rounded-2xl text-sm text-slate-700 placeholder-slate-400 focus:outline-none" placeholder="05XX XXX XX XX" />
@@ -893,26 +893,30 @@ function BakimMerkezi() {
                       <label htmlFor="edit-plaka" className="block text-slate-600 text-xs font-semibold mb-1.5">Plaka *</label>
                       <input type="text" id="edit-plaka" name="plaka" value={editFormData.plaka || ''} onChange={handleEditChange} required className="glass-input w-full py-2.5 px-4 rounded-2xl text-sm text-slate-700 placeholder-slate-400 focus:outline-none uppercase" placeholder="34 ABC 123" />
                     </div>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label htmlFor="edit-aracModeli" className="block text-slate-600 text-xs font-semibold mb-1.5">Araç Modeli *</label>
                       <input type="text" id="edit-aracModeli" name="aracModeli" value={editFormData.aracModeli || ''} onChange={handleEditChange} required className="glass-input w-full py-2.5 px-4 rounded-2xl text-sm text-slate-700 placeholder-slate-400 focus:outline-none" placeholder="Örn: Toyota Corolla 2020" />
                     </div>
                     <div>
-                      <label htmlFor="edit-hizmetTarihi" className="block text-slate-600 text-xs font-semibold mb-1.5">Hizmet Tarihi *</label>
-                      <input type="date" id="edit-hizmetTarihi" name="hizmetTarihi" value={editFormData.hizmetTarihi || ''} onChange={handleEditChange} required className="glass-input w-full py-2.5 px-4 rounded-2xl text-sm text-slate-700 focus:outline-none" />
-                    </div>
-                    <div>
-                      <label htmlFor="edit-sonrakiBakimTarihi" className="block text-slate-600 text-xs font-semibold mb-1.5">Sonraki Bakım Tarihi</label>
-                      <input type="date" id="edit-sonrakiBakimTarihi" name="sonrakiBakimTarihi" value={editFormData.sonrakiBakimTarihi || ''} onChange={handleEditChange} className="glass-input w-full py-2.5 px-4 rounded-2xl text-sm text-slate-700 focus:outline-none" />
-                    </div>
-                    <div>
-                      <label htmlFor="edit-alınanUcret" className="block text-slate-600 text-xs font-semibold mb-1.5">Alınan Ücret (₺) *</label>
-                      <input type="text" id="edit-alınanUcret" name="alınanUcret" value={editFormData.alınanUcret || ''} onChange={handleEditChange} inputMode="numeric" pattern="[0-9.,]*" required className="glass-input w-full py-2.5 px-4 rounded-2xl text-sm text-slate-700 placeholder-slate-400 focus:outline-none" placeholder="0,00" />
-                    </div>
-                    <div>
                       <label htmlFor="edit-personel" className="block text-slate-600 text-xs font-semibold mb-1.5">Personel</label>
                       <input type="text" id="edit-personel" name="personel" value={editFormData.personel || ''} onChange={handleEditChange} className="glass-input w-full py-2.5 px-4 rounded-2xl text-sm text-slate-700 placeholder-slate-400 focus:outline-none" placeholder="Şahin Lale" />
                     </div>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="min-w-0">
+                      <label htmlFor="edit-hizmetTarihi" className="block text-slate-600 text-xs font-semibold mb-1.5">Hizmet Tarihi *</label>
+                      <input type="date" id="edit-hizmetTarihi" name="hizmetTarihi" value={editFormData.hizmetTarihi || ''} onChange={handleEditChange} required className="glass-input w-full min-w-0 py-2.5 px-3 rounded-2xl text-sm text-slate-700 focus:outline-none" />
+                    </div>
+                    <div className="min-w-0">
+                      <label htmlFor="edit-sonrakiBakimTarihi" className="block text-slate-600 text-xs font-semibold mb-1.5">Sonraki Bakım Tarihi</label>
+                      <input type="date" id="edit-sonrakiBakimTarihi" name="sonrakiBakimTarihi" value={editFormData.sonrakiBakimTarihi || ''} onChange={handleEditChange} className="glass-input w-full min-w-0 py-2.5 px-3 rounded-2xl text-sm text-slate-700 focus:outline-none" />
+                    </div>
+                  </div>
+                  <div>
+                    <label htmlFor="edit-alınanUcret" className="block text-slate-600 text-xs font-semibold mb-1.5">Alınan Ücret (₺) *</label>
+                    <input type="text" id="edit-alınanUcret" name="alınanUcret" value={editFormData.alınanUcret || ''} onChange={handleEditChange} inputMode="numeric" pattern="[0-9.,]*" required className="glass-input w-full py-2.5 px-4 rounded-2xl text-sm text-slate-700 placeholder-slate-400 focus:outline-none" placeholder="0,00" />
                   </div>
                   <div>
                     <label htmlFor="edit-yapilanIslemler" className="block text-slate-600 text-xs font-semibold mb-1.5">Yapılan İşlemler *</label>
