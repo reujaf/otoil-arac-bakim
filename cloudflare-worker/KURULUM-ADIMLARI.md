@@ -83,11 +83,15 @@ npm run dev
 
 Site GitHub Actions ile GitHub Pages’e deploy ediliyorsa, **Worker URL’si build sırasında tanımlı olmalı**. Aksi halde canlı sitede OtoilAI çalışmaz.
 
-1. GitHub’da repoya gidin → **Settings** → **Secrets and variables** → **Actions**.
-2. **New repository secret** ile yeni secret ekleyin:
-   - **Name:** `VITE_OTOILAI_WORKER_URL`
-   - **Value:** Worker adresiniz (örn. `https://otoil-gemini.SIZIN-ADINIZ.workers.dev`)
-3. Bir sonraki push’ta (veya **Actions** sekmesinden workflow’u elle çalıştırdığınızda) build bu URL ile yapılır; canlı sitede OtoilAI çalışır.
+1. GitHub’da **kendi reponuzda** (fork değil) **Settings** → **Secrets and variables** → **Actions** sayfasına gidin.
+2. **New repository secret** tıklayın:
+   - **Name:** Tam olarak `VITE_OTOILAI_WORKER_URL` (kopyala-yapıştır yapın; başında/sonunda boşluk olmasın).
+   - **Value:** Worker adresiniz (örn. `https://otoil-gemini.SIZIN-ADINIZ.workers.dev`) — `https://` ile başlamalı.
+3. **Save** deyip kaydedin.
+4. **Actions** sekmesine gidin → **Deploy to GitHub Pages** workflow’unu açın → **Run workflow** → **Run workflow**. (Veya `main` branch’e yeni bir push atın.)
+5. Workflow yeşil tik ile bittikten sonra canlı site birkaç dakika içinde güncellenir. Sayfayı sert yenileyin (Ctrl+F5).
+
+**Hâlâ buton gelmiyorsa:** Workflow çalışırken **Check OtoilAI secret** adımı kırmızı veriyorsa secret yok veya boş demektir. İsim ve değeri tekrar kontrol edin.
 
 ---
 

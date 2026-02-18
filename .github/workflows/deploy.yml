@@ -33,11 +33,32 @@ jobs:
         working-directory: arac-bakim-web-sitesi
         run: npm ci
 
+      - name: Check OtoilAI secret
+        run: |
+          if [ -z "${{ secrets.VITE_OTOILAI_WORKER_URL }}" ]; then
+            echo "::error::VITE_OTOILAI_WORKER_URL secret yok veya boş. GitHub repo → Settings → Secrets and variables → Actions → New repository secret ile ekleyin. İsim tam olarak: VITE_OTOILAI_WORKER_URL"
+            exit 1
+          fi
+          echo "VITE_OTOILAI_WORKER_URL tanımlı (değer gizli)"
+
+      - name: Create .env for OtoilAI (build için)
+        working-directory: arac-bakim-web-sitesi
+        run: |
+          # Üzerine yaz (>> değil); repodaki .env varsa ilk satır boş kalmasın
+          echo "VITE_OTOILAI_WORKER_URL=${{ secrets.VITE_OTOILAI_WORKER_URL }}" > .env
+          cat .env | sed 's/=.*/=***/'  # Doğrulama (değer gizli)
+
       - name: Build
         working-directory: arac-bakim-web-sitesi
-        env:
-          VITE_OTOILAI_WORKER_URL: ${{ secrets.VITE_OTOILAI_WORKER_URL }}
         run: npm run build
+
+      - name: Verify OtoilAI URL in build
+        run: |
+          if ! grep -rq "workers\.dev" arac-bakim-web-sitesi/dist/ 2>/dev/null; then
+            echo "::error::Build çıktısında Worker URL bulunamadı. Secret doğru mu? (workers.dev içermeli)"
+            exit 1
+          fi
+          echo "Worker URL build içinde doğrulandı."
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
