@@ -76,7 +76,7 @@ VITE_OTOILAI_WORKER_URL=https://otoil-gemini.SIZIN-KULLANICI-ADINIZ.workers.dev
 cd C:\Users\BLale\otoil\otoil-arac-bakim\arac-bakim-web-sitesi
 npm run dev
 ```
-
+.
 ---
 
 ## GitHub Pages (canlı site) için ek adım
