@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { db, auth } from '../firebaseConfig';
-import { collection, query, onSnapshot, doc, updateDoc, Timestamp } from 'firebase/firestore';
+import { collection, query, onSnapshot, doc, updateDoc, deleteDoc, Timestamp } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
 import BottomNavigation from '../components/BottomNavigation';
@@ -620,6 +620,24 @@ function BakimMerkezi() {
     setEditFormData({});
   };
 
+  // Kayıt sil
+  const handleDelete = async (hizmet) => {
+    const eminMi = window.confirm(
+      'Bu kaydı silmek istediğinize emin misiniz? Bu işlem geri alınamaz.'
+    );
+    if (!eminMi) return;
+
+    try {
+      const hizmetRef = doc(db, 'hizmetler', hizmet.id);
+      await deleteDoc(hizmetRef);
+      setSelectedHizmet(null);
+      alert('Kayıt silindi.');
+    } catch (error) {
+      console.error('Silme hatası:', error);
+      alert('Kayıt silinirken bir hata oluştu: ' + error.message);
+    }
+  };
+
   // WhatsApp mesajı gönder
   const handleWhatsAppMesaj = (hizmet) => {
     if (!hizmet.telefon) {
@@ -853,6 +871,17 @@ function BakimMerkezi() {
                           className="glass-btn-blue text-white px-5 py-2.5 rounded-2xl text-sm font-semibold"
                         >
                           PDF Paylaş
+                        </button>
+                      </div>
+                      <div className="mt-4 pt-4 border-t border-slate-200 flex justify-end">
+                        <button
+                          onClick={() => handleDelete(hizmet)}
+                          className="bg-red-500 hover:bg-red-600 text-white px-5 py-2.5 rounded-2xl text-sm font-semibold flex items-center gap-2 transition-colors"
+                        >
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                          Kaydı Sil
                         </button>
                       </div>
                     </div>
