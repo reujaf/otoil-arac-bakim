@@ -7,6 +7,15 @@ import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'rec
 import BottomNavigation from '../components/BottomNavigation';
 import logo from '../assets/otoil-logo.png';
 
+const OTOILAI_WORKER_URL = import.meta.env.VITE_OTOILAI_WORKER_URL || '';
+const OTOILAI_CACHE_KEY_DATE = 'otoil_ai_last_fetch_date';
+const OTOILAI_CACHE_KEY_TEXT = 'otoil_ai_last_text';
+const OTOILAI_CACHE_KEY_TRUNCATED = 'otoil_ai_truncated';
+
+function getTodayKey() {
+  return new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+}
+
 function Dashboard() {
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
@@ -14,15 +23,14 @@ function Dashboard() {
   const [aylikCiro, setAylikCiro] = useState(0);
   const [tumZamanlarCiro, setTumZamanlarCiro] = useState(0);
   const [gunlukCiroVerileri, setGunlukCiroVerileri] = useState([]);
+  const [hizmetlerListesi, setHizmetlerListesi] = useState([]);
 
-  const hosgeldinMetni = () => {
-    const saat = new Date().getHours();
-    if (saat < 12) return 'Günaydın';
-    if (saat < 18) return 'İyi günler';
-    return 'İyi akşamlar';
-  };
-
-  const kullaniciAdi = user?.email?.split('@')[0] || 'Patron';
+  const [otoilAiLoading, setOtoilAiLoading] = useState(false);
+  const [otoilAiText, setOtoilAiText] = useState('');
+  const [otoilAiError, setOtoilAiError] = useState('');
+  const [otoilAiCacheUsed, setOtoilAiCacheUsed] = useState(false);
+  const [otoilAiTruncated, setOtoilAiTruncated] = useState(false);
+  const [otoilAiExpanded, setOtoilAiExpanded] = useState(false); // strateji metni kutusu açık mı
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((currentUser) => {
@@ -32,6 +40,21 @@ function Dashboard() {
     return () => unsubscribe();
   }, [navigate]);
 
+  // OtoilAI: bugün için önbellekte sonuç varsa sayfa açılışında göster (API çağrısı yapma)
+  useEffect(() => {
+    if (!OTOILAI_WORKER_URL) return;
+    try {
+      const lastDate = localStorage.getItem(OTOILAI_CACHE_KEY_DATE);
+      const lastText = localStorage.getItem(OTOILAI_CACHE_KEY_TEXT);
+      if (lastDate === getTodayKey() && lastText) {
+        setOtoilAiText(lastText);
+        setOtoilAiCacheUsed(true);
+        const truncated = localStorage.getItem(OTOILAI_CACHE_KEY_TRUNCATED);
+        setOtoilAiTruncated(truncated === 'true');
+      }
+    } catch (_) {}
+  }, []);
+
   useEffect(() => {
     const user = auth.currentUser;
     if (!user) return;
@@ -39,6 +62,8 @@ function Dashboard() {
     const q = query(collection(db, 'hizmetler'));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const hizmetListesi = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+
+      setHizmetlerListesi(hizmetListesi);
 
       const bugun = new Date();
       bugun.setHours(0, 0, 0, 0);
@@ -88,9 +113,96 @@ function Dashboard() {
 
   const fmt = (v) => v.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
+  const getMusteriAdi = (h) => h?.adSoyad || (h?.isim || h?.soyisim ? `${h.isim || ''} ${h.soyisim || ''}`.trim() : '-');
+
+  const fetchOtoilAiStrategies = async () => {
+    if (!OTOILAI_WORKER_URL) {
+      setOtoilAiError('OtoilAI için Worker URL ayarlanmamış. .env dosyasında VITE_OTOILAI_WORKER_URL tanımlayın.');
+      return;
+    }
+    // Günde en fazla 1 istek: bugün için önbellek varsa API çağırma
+    try {
+      const lastDate = localStorage.getItem(OTOILAI_CACHE_KEY_DATE);
+      if (lastDate === getTodayKey()) {
+        const cached = localStorage.getItem(OTOILAI_CACHE_KEY_TEXT);
+        if (cached) {
+          setOtoilAiText(cached);
+          setOtoilAiCacheUsed(true);
+          setOtoilAiError('');
+          return;
+        }
+      }
+    } catch (_) {}
+    setOtoilAiError('');
+    setOtoilAiText('');
+    setOtoilAiCacheUsed(false);
+    setOtoilAiLoading(true);
+
+    const haftalikMetin = gunlukCiroVerileri
+      .map((g) => `${g.gun}: ${fmt(g.ciro)} ₺`)
+      .join(', ');
+
+    const sonKayitlar = hizmetlerListesi
+      .slice(0, 30)
+      .map((h) => {
+        const tarih = h.hizmetTarihi ? h.hizmetTarihi.toDate().toLocaleDateString('tr-TR') : '-';
+        const ucret = (h.alınanUcret != null) ? fmt(h.alınanUcret) + ' ₺' : '-';
+        const islem = (h.yapilanIslemler || '').slice(0, 80);
+        return `- ${h.plaka || '-'} | ${getMusteriAdi(h)} | ${tarih} | ${ucret} | ${islem}${islem.length >= 80 ? '...' : ''}`;
+      })
+      .join('\n');
+
+    const context = `
+Tarih: ${new Date().toLocaleDateString('tr-TR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+
+ÖZET:
+- Bugünkü ciro: ${fmt(bugunCiro)} ₺
+- Bu ayki ciro: ${fmt(aylikCiro)} ₺
+- Tüm zamanlar toplam ciro: ${fmt(tumZamanlarCiro)} ₺
+- Toplam hizmet kayıt sayısı: ${hizmetlerListesi.length}
+
+SON 7 GÜN GÜNLÜK CİRO:
+${haftalikMetin}
+
+SON KAYITLAR (plaka | müşteri | tarih | tutar | yapılan işlem özeti):
+${sonKayitlar || '(Henüz kayıt yok)'}
+`.trim();
+
+    try {
+      const res = await fetch(OTOILAI_WORKER_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ context }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        setOtoilAiError(data?.error || 'İstek başarısız.');
+        return;
+      }
+      if (data.error) {
+        setOtoilAiError(data.error);
+        return;
+      }
+      const text = data.text || '';
+      const truncated = data.finishReason === 'MAX_TOKENS';
+      setOtoilAiText(text);
+      setOtoilAiCacheUsed(true);
+      setOtoilAiTruncated(truncated);
+      try {
+        localStorage.setItem(OTOILAI_CACHE_KEY_DATE, getTodayKey());
+        localStorage.setItem(OTOILAI_CACHE_KEY_TEXT, text);
+        localStorage.setItem(OTOILAI_CACHE_KEY_TRUNCATED, truncated ? 'true' : 'false');
+      } catch (_) {}
+    } catch (err) {
+      setOtoilAiError('Bağlantı hatası: ' + (err.message || 'Bilinmeyen hata'));
+    } finally {
+      setOtoilAiLoading(false);
+    }
+  };
+
   return (
     <div className="glass-bg pb-24">
-      {/* Top bar */}
       <nav className="glass-card-solid sticky top-0 z-30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-3">
@@ -106,17 +218,86 @@ function Dashboard() {
       </nav>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
-        {/* Hoşgeldin */}
+        {/* OtoilAI */}
         <div className="glass-card rounded-3xl p-5 mb-4">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#26a9e0] to-[#0c4a6e] flex items-center justify-center text-white text-lg font-bold shadow-lg shadow-sky-500/25">
-              {kullaniciAdi.charAt(0).toUpperCase()}
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#26a9e0] to-[#0c4a6e] flex items-center justify-center shadow-lg shadow-sky-500/20">
+              <span className="text-white text-lg font-bold">AI</span>
             </div>
             <div>
-              <p className="text-slate-400 text-xs font-medium">{hosgeldinMetni()}!</p>
-              <h1 className="text-xl font-bold text-slate-800">{kullaniciAdi}</h1>
+              <h1 className="text-xl font-bold text-slate-800">OtoilAI</h1>
+              <p className="text-slate-500 text-xs">Kayıtlarınıza göre günlük iş stratejileri</p>
             </div>
           </div>
+          {OTOILAI_WORKER_URL ? (
+            <>
+              <button
+                onClick={fetchOtoilAiStrategies}
+                disabled={otoilAiLoading || (!!otoilAiText && otoilAiCacheUsed)}
+                className="glass-btn-blue text-white px-4 py-2.5 rounded-2xl text-sm font-semibold disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                {otoilAiLoading ? (
+                  <>
+                    <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    Stratejiler hazırlanıyor...
+                  </>
+                ) : otoilAiText && otoilAiCacheUsed ? (
+                  <>Bugünkü stratejiler yüklendi (yarın tekrar isteyebilirsiniz)</>
+                ) : (
+                  <>
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                    </svg>
+                    Stratejileri Getir
+                  </>
+                )}
+              </button>
+              {otoilAiError && (
+                <p className="mt-3 text-sm text-red-600 bg-red-50 rounded-xl px-3 py-2">{otoilAiError}</p>
+              )}
+              {otoilAiText && (
+                <div className="mt-4 rounded-2xl bg-slate-50 border border-slate-100 overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={() => setOtoilAiExpanded((e) => !e)}
+                    className="w-full flex items-center justify-between gap-2 px-4 py-3 text-left hover:bg-slate-100/80 transition-colors rounded-2xl"
+                  >
+                    <span className="text-sm font-medium text-slate-600">
+                      Günlük stratejiler {otoilAiCacheUsed && <span className="text-slate-400">(günde bir kez güncellenir)</span>}
+                    </span>
+                    <svg
+                      className={`w-5 h-5 text-slate-400 shrink-0 transition-transform ${otoilAiExpanded ? 'rotate-180' : ''}`}
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                  {otoilAiExpanded && (
+                    <>
+                      {otoilAiTruncated && (
+                        <p className="px-4 pb-2 text-amber-700 text-xs bg-amber-50 border-b border-amber-100/80">
+                          Metin API token limiti nedeniyle kesilmiş olabilir (daha uzun metin için Worker’da maxOutputTokens artırılabilir).
+                        </p>
+                      )}
+                      <div className="px-4 pb-4 max-h-[70vh] min-h-[120px] overflow-y-auto text-slate-800 text-sm whitespace-pre-wrap leading-relaxed scroll-smooth">
+                        {otoilAiText}
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
+            </>
+          ) : (
+            <p className="text-sm text-slate-500">
+              OtoilAI kullanmak için Cloudflare Worker kurulumu ve <code className="bg-slate-100 px-1 rounded">VITE_OTOILAI_WORKER_URL</code> ayarı gerekiyor. Proje içindeki <code className="bg-slate-100 px-1 rounded">cloudflare-worker/README.md</code> dosyasına bakın.
+            </p>
+          )}
         </div>
 
         {/* Grafik */}
