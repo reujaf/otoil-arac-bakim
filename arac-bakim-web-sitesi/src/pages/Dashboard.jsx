@@ -7,7 +7,7 @@ import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'rec
 import BottomNavigation from '../components/BottomNavigation';
 import logo from '../assets/otoil-logo.png';
 
-const OTOILAI_WORKER_URL = import.meta.env.VITE_OTOILAI_WORKER_URL || '';
+const OTOILAI_WORKER_URL = import.meta.env.VITE_OTOILAI_WORKER_URL || 'https://otoil-gemini.burakksipahi.workers.dev';
 const OTOILAI_CACHE_KEY_DATE = 'otoil_ai_last_fetch_date';
 const OTOILAI_CACHE_KEY_TEXT = 'otoil_ai_last_text';
 const OTOILAI_CACHE_KEY_TRUNCATED = 'otoil_ai_truncated';
