@@ -35,6 +35,8 @@ jobs:
 
       - name: Build
         working-directory: arac-bakim-web-sitesi
+        env:
+          VITE_OTOILAI_WORKER_URL: ${{ secrets.VITE_OTOILAI_WORKER_URL }}
         run: npm run build
 
       - name: Setup Pages

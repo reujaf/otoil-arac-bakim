@@ -79,6 +79,18 @@ npm run dev
 
 ---
 
+## GitHub Pages (canlı site) için ek adım
+
+Site GitHub Actions ile GitHub Pages’e deploy ediliyorsa, **Worker URL’si build sırasında tanımlı olmalı**. Aksi halde canlı sitede OtoilAI çalışmaz.
+
+1. GitHub’da repoya gidin → **Settings** → **Secrets and variables** → **Actions**.
+2. **New repository secret** ile yeni secret ekleyin:
+   - **Name:** `VITE_OTOILAI_WORKER_URL`
+   - **Value:** Worker adresiniz (örn. `https://otoil-gemini.SIZIN-ADINIZ.workers.dev`)
+3. Bir sonraki push’ta (veya **Actions** sekmesinden workflow’u elle çalıştırdığınızda) build bu URL ile yapılır; canlı sitede OtoilAI çalışır.
+
+---
+
 ## Özet
 
 | Adım | Komut / İşlem |
@@ -89,5 +101,6 @@ npm run dev
 | 4 | `npx wrangler secret put GEMINI_API_KEY` (API anahtarını yapıştır) |
 | 5 | `npx wrangler deploy` (çıkan URL’yi kopyala) |
 | 6 | `.env` içine `VITE_OTOILAI_WORKER_URL=...` yaz, `npm run dev` |
+| 7 (canlı) | GitHub → Settings → Secrets → `VITE_OTOILAI_WORKER_URL` ekle |
 
 Bir adımda takılırsanız o adımın çıktısını veya hata mesajını paylaşırsanız, bir sonraki komutu birlikte netleştirebiliriz.
