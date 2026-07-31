@@ -234,6 +234,7 @@ function BakimMerkezi() {
       sonrakiBakimTarihi: sonrakiBakimTarihi,
       yapilanIslemler: hizmet.yapilanIslemler || '',
       fullCheckupSonucu: hizmet.fullCheckupSonucu || '',
+      ustaNotu: hizmet.ustaNotu || hizmet.ustaGorusu || '',
       alınanUcret: fiyat,
       personel: hizmet.personel || 'Şahin Lale',
     });
@@ -286,6 +287,7 @@ function BakimMerkezi() {
         hizmetTarihi: Timestamp.fromDate(hizmetTarihiObj),
         yapilanIslemler: editFormData.yapilanIslemler,
         fullCheckupSonucu: editFormData.fullCheckupSonucu.trim(),
+        ustaNotu: (editFormData.ustaNotu || '').trim(),
         alınanUcret: ucret,
         personel: editFormData.personel || 'Şahin Lale',
       };
@@ -538,6 +540,12 @@ function BakimMerkezi() {
                             <p className="text-sm text-slate-700 mt-1 whitespace-pre-wrap">{hizmet.fullCheckupSonucu}</p>
                           </div>
                         )}
+                        {(hizmet.ustaNotu || hizmet.ustaGorusu) && (
+                          <div className="glass-card rounded-2xl p-4">
+                            <span className="text-xs text-slate-400 font-medium">Usta Görüşü & Özel Notlar</span>
+                            <p className="text-sm text-slate-700 mt-1 whitespace-pre-wrap">{hizmet.ustaNotu || hizmet.ustaGorusu}</p>
+                          </div>
+                        )}
                         <div className="rounded-2xl p-4" style={{ background: 'linear-gradient(135deg, rgba(38,169,224,0.15), rgba(14,165,233,0.1))' }}>
                           <span className="text-xs text-[#1e8fc4] font-medium">Alınan Ücret</span>
                           <p className="text-xl font-bold text-slate-800 mt-0.5">{formatFiyat(hizmet.alınanUcret)} ₺</p>
@@ -652,6 +660,10 @@ function BakimMerkezi() {
                   <div>
                     <label htmlFor="edit-fullCheckupSonucu" className="block text-slate-600 text-xs font-semibold mb-1.5">Full Check-up Sonucu</label>
                     <textarea id="edit-fullCheckupSonucu" name="fullCheckupSonucu" value={editFormData.fullCheckupSonucu || ''} onChange={handleEditChange} rows="3" className="glass-input w-full py-2.5 px-4 rounded-2xl text-sm text-slate-700 placeholder-slate-400 focus:outline-none resize-none" placeholder="Full check-up sonuçları..." />
+                  </div>
+                  <div>
+                    <label htmlFor="edit-ustaNotu" className="block text-slate-600 text-xs font-semibold mb-1.5">Usta Görüşü & Özel Notlar (PDF 2. Sayfada Görünür)</label>
+                    <textarea id="edit-ustaNotu" name="ustaNotu" value={editFormData.ustaNotu || ''} onChange={handleEditChange} rows="3" className="glass-input w-full py-2.5 px-4 rounded-2xl text-sm text-slate-700 placeholder-slate-400 focus:outline-none resize-none" placeholder="Usta görüşü ve özel notlar..." />
                   </div>
                   <div className="flex justify-end gap-2.5 pt-4">
                     <button type="button" onClick={handleCancelEdit} disabled={isUpdating} className="glass-btn-white text-slate-600 px-5 py-2.5 rounded-2xl text-sm font-semibold border border-slate-200/50 disabled:opacity-50">İptal</button>

@@ -203,11 +203,11 @@ export const generateHizmetFormuPDF = async (hizmet, logoSrc) => {
       const otmeKat = KONTROL_KATEGORILERI.find(k => k.id === 'otme');
       const sorunKat = KONTROL_KATEGORILERI.find(k => k.id === 'sorun_kacak');
 
-      const notesBlockHtml = `
-        <div style="margin-bottom:6px; border:1px solid #cbd5e1; border-radius:5px; overflow:hidden; background:white;">
-          <div style="background-color:#1e293b; color:#ffffff; padding:5px 8px; font-size:8pt; font-weight:700; text-transform:uppercase; letter-spacing:0.3px; line-height:1.2;">
-            USTA GÖRÜŞÜ & ÖZEL NOTLAR
-          </div>
+      const ustaNotuMetni = (hizmet.ustaNotu || hizmet.ustaGorusu || '').trim();
+
+      const notesContentHtml = ustaNotuMetni
+        ? `<div style="padding:8px 10px; font-size:8.5pt; color:#1e293b; line-height:1.5; font-weight:500; white-space:pre-wrap; min-height:220px; word-break:break-word;">${ustaNotuMetni.replace(/\n/g, '<br>')}</div>`
+        : `
           <div style="padding:6px 8px; background-color:#ffffff;">
             <div style="border-bottom:1px dashed #cbd5e1; height:20px; margin-bottom:4px;"></div>
             <div style="border-bottom:1px dashed #cbd5e1; height:20px; margin-bottom:4px;"></div>
@@ -221,6 +221,14 @@ export const generateHizmetFormuPDF = async (hizmet, logoSrc) => {
             <div style="border-bottom:1px dashed #cbd5e1; height:20px; margin-bottom:4px;"></div>
             <div style="border-bottom:1px dashed #cbd5e1; height:20px; margin-bottom:2px;"></div>
           </div>
+        `;
+
+      const notesBlockHtml = `
+        <div style="margin-bottom:6px; border:1px solid #cbd5e1; border-radius:5px; overflow:hidden; background:white;">
+          <div style="background-color:#1e293b; color:#ffffff; padding:5px 8px; font-size:8pt; font-weight:700; text-transform:uppercase; letter-spacing:0.3px; line-height:1.2;">
+            USTA GÖRÜŞÜ & ÖZEL NOTLAR
+          </div>
+          ${notesContentHtml}
         </div>
       `;
 

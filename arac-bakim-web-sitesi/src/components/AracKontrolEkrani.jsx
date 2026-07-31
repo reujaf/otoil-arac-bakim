@@ -1,6 +1,6 @@
 import { KONTROL_KATEGORILERI, getDefaultKontrolListesi } from '../data/kontrolData';
 
-function AracKontrolEkrani({ kontrolListesi = {}, onChange, readOnly = false }) {
+function AracKontrolEkrani({ kontrolListesi = {}, onChange, readOnly = false, ustaNotu = '', onUstaNotuChange }) {
 
   const handleStatusChange = (itemId, durum) => {
     if (readOnly) return;
@@ -229,6 +229,28 @@ function AracKontrolEkrani({ kontrolListesi = {}, onChange, readOnly = false }) 
           </div>
         );
       })}
+
+      {/* Usta Görüşü & Özel Notlar Kartı */}
+      <div className="glass-card rounded-2xl overflow-hidden border border-slate-200/80 shadow-sm mt-6">
+        <div className="px-4 py-3 bg-[#1e293b] flex items-center justify-between border-b border-slate-700/60 shadow-xs">
+          <h3 
+            className="text-xs sm:text-sm font-extrabold tracking-widest uppercase drop-shadow-sm" 
+            style={{ color: '#ffffff' }}
+          >
+            USTA GÖRÜŞÜ & ÖZEL NOTLAR
+          </h3>
+        </div>
+        <div className="p-4">
+          <textarea
+            disabled={readOnly}
+            value={ustaNotu || ''}
+            onChange={(e) => onUstaNotuChange && onUstaNotuChange(e.target.value)}
+            rows="4"
+            placeholder="Araç ile ilgili usta görüşü, tavsiyeler ve özel notlarınızı buraya yazın (PDF 2. sayfada görünecektir)..."
+            className="glass-input w-full text-xs sm:text-sm py-2.5 px-3.5 rounded-xl text-slate-700 placeholder-slate-400 focus:outline-none border border-slate-200/80 focus:border-[#26a9e0] bg-slate-50/60 focus:bg-white transition-all resize-none"
+          />
+        </div>
+      </div>
     </div>
   );
 }

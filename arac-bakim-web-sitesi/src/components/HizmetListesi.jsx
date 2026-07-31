@@ -262,6 +262,18 @@ function HizmetListesi() {
                           <span className="text-sm text-gray-600 font-medium">Yapılan İşlemler</span>
                           <p className="text-gray-700 mt-1">{hizmet.yapilanIslemler}</p>
                         </div>
+                        {hizmet.fullCheckupSonucu && (
+                          <div className="bg-gray-50 rounded-lg p-4">
+                            <span className="text-sm text-gray-600 font-medium">Full Check-up Sonucu</span>
+                            <p className="text-gray-700 mt-1 whitespace-pre-wrap">{hizmet.fullCheckupSonucu}</p>
+                          </div>
+                        )}
+                        {(hizmet.ustaNotu || hizmet.ustaGorusu) && (
+                          <div className="bg-gray-50 rounded-lg p-4">
+                            <span className="text-sm text-gray-600 font-medium">Usta Görüşü & Özel Notlar</span>
+                            <p className="text-gray-700 mt-1 whitespace-pre-wrap">{hizmet.ustaNotu || hizmet.ustaGorusu}</p>
+                          </div>
+                        )}
                         <div className="bg-blue-50 rounded-lg p-4">
                           <span className="text-sm text-blue-600 font-medium">Alınan Ücret</span>
                           <p className="text-xl font-bold text-blue-900 mt-1">{formatFiyat(hizmet.alınanUcret)} ₺</p>

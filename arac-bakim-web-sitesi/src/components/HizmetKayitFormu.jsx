@@ -13,6 +13,7 @@ function HizmetKayitFormu() {
     hizmetTarihi: '',
     yapilanIslemler: '',
     fullCheckupSonucu: '',
+    ustaNotu: '',
     alınanUcret: '',
   });
   const [kontrolListesi, setKontrolListesi] = useState({});
@@ -72,6 +73,7 @@ function HizmetKayitFormu() {
         hizmetTarihi: Timestamp.fromDate(hizmetTarihiObj),
         yapilanIslemler: formData.yapilanIslemler,
         fullCheckupSonucu: formData.fullCheckupSonucu.trim(),
+        ustaNotu: (formData.ustaNotu || '').trim(),
         kontrolListesi: kontrolListesi || {},
         alınanUcret: ucret,
         personel: 'Şahin Lale',
@@ -82,7 +84,7 @@ function HizmetKayitFormu() {
 
       await addDoc(collection(db, 'hizmetler'), hizmetData);
 
-      setFormData({ adSoyad: '', telefon: '', plaka: '', aracModeli: '', hizmetTarihi: '', yapilanIslemler: '', fullCheckupSonucu: '', alınanUcret: '' });
+      setFormData({ adSoyad: '', telefon: '', plaka: '', aracModeli: '', hizmetTarihi: '', yapilanIslemler: '', fullCheckupSonucu: '', ustaNotu: '', alınanUcret: '' });
       setKontrolListesi({});
       setActiveTab('genel');
       setSuccessMessage('Hizmet kaydı başarıyla oluşturuldu!');
@@ -197,12 +199,19 @@ function HizmetKayitFormu() {
                 <label htmlFor="fullCheckupSonucu" className="block text-slate-700 text-xs font-bold mb-1.5">Full Check-up Sonucu / Genel Notlar</label>
                 <textarea id="fullCheckupSonucu" name="fullCheckupSonucu" value={formData.fullCheckupSonucu} onChange={handleChange} rows="3" className={`${inputCls} resize-none`} placeholder="Full check-up sonuçları ve genel notlarınız..." />
               </div>
+
+              <div>
+                <label htmlFor="ustaNotu" className="block text-slate-700 text-xs font-bold mb-1.5">Usta Görüşü & Özel Notlar (PDF Rapor 2. Sayfada Görünür)</label>
+                <textarea id="ustaNotu" name="ustaNotu" value={formData.ustaNotu} onChange={handleChange} rows="3" className={`${inputCls} resize-none`} placeholder="PDF raporundaki usta görüşü ve özel notlar alanında görünecek metni yazın..." />
+              </div>
             </div>
           ) : (
             <div className="py-1">
               <AracKontrolEkrani
                 kontrolListesi={kontrolListesi}
                 onChange={setKontrolListesi}
+                ustaNotu={formData.ustaNotu}
+                onUstaNotuChange={(val) => setFormData({ ...formData, ustaNotu: val })}
               />
             </div>
           )}
