@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { auth, db } from '../firebaseConfig';
 import { signOut } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
@@ -13,6 +13,47 @@ const OTOILAI_CACHE_KEY_TRUNCATED = 'otoil_ai_truncated';
 
 function getTodayKey() {
   return new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+}
+
+/**
+ * Sayıyı 0'dan hedef değere hızlıca animasyonlu şekilde sayar.
+ */
+function AnimatedNumber({ value, format = (v) => v.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }) {
+  const [display, setDisplay] = useState(0);
+  const prevValue = useRef(null);
+
+  useEffect(() => {
+    const to = Number(value) || 0;
+    // İlk çalıştırmada 0'dan başla, sonrakinde önceki değerden
+    const from = prevValue.current === null ? 0 : prevValue.current;
+    prevValue.current = to;
+    if (from === to) {
+      setDisplay(to);
+      return;
+    }
+
+    const duration = 2000;
+    const startTime = performance.now();
+    let raf;
+
+    const tick = (now) => {
+      const progress = Math.min((now - startTime) / duration, 1);
+      // easeInOutQuint: çok belirgin yavaş başlangıç ve bitiş
+      const eased = progress < 0.5
+        ? 16 * progress ** 5
+        : 1 - Math.pow(-2 * progress + 2, 5) / 2;
+      setDisplay(from + (to - from) * eased);
+      if (progress < 1) {
+        raf = requestAnimationFrame(tick);
+      } else {
+        setDisplay(to); // Tam değeri garanti yaz
+      }
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [value]);
+
+  return <span className="tabular-nums">{format(display)}</span>;
 }
 
 function Dashboard() {
@@ -262,12 +303,12 @@ ${sonKayitlar || '(Henüz kayıt yok)'}
           <div className="mt-6 flex items-end justify-between gap-4">
             <div>
               <p className="text-sky-100/80 text-xs font-semibold uppercase tracking-wider">Bugünün Cirosu</p>
-              <p className="text-white text-4xl font-extrabold mt-1 tabular-nums tracking-tight">
-                {fmt(bugunCiro)} <span className="text-2xl text-sky-200">₺</span>
+              <p className="text-white text-4xl font-extrabold mt-1 tracking-tight">
+                <AnimatedNumber value={bugunCiro} /> <span className="text-2xl text-sky-200">₺</span>
               </p>
             </div>
             <div className="bg-white/15 backdrop-blur-md rounded-md px-4 py-2.5 text-center">
-              <p className="text-white text-xl font-bold tabular-nums">{hizmetSayisiBugun}</p>
+              <p className="text-white text-xl font-bold tabular-nums"><AnimatedNumber value={hizmetSayisiBugun} format={(v) => Math.round(v).toString()} /></p>
               <p className="text-sky-100/80 text-[10px] font-medium uppercase tracking-wide">Bugünkü İşlem</p>
             </div>
           </div>
@@ -284,7 +325,7 @@ ${sonKayitlar || '(Henüz kayıt yok)'}
               </svg>
             </div>
             <p className="text-slate-400 text-[11px] font-semibold uppercase tracking-wide">Aylık Ciro</p>
-            <p className="text-slate-800 text-xl font-bold tabular-nums mt-0.5">{fmt(aylikCiro)} ₺</p>
+            <p className="text-slate-800 text-xl font-bold mt-0.5"><AnimatedNumber value={aylikCiro} /> ₺</p>
           </div>
           <div className="group bg-white/80 backdrop-blur-xl rounded-lg p-5 ring-1 ring-slate-200 transition-all hover:-translate-y-0.5 hover:ring-slate-300">
             <div className="w-10 h-10 rounded-md bg-gradient-to-br from-[#26a9e0] to-indigo-500 flex items-center justify-center mb-3">
@@ -293,7 +334,7 @@ ${sonKayitlar || '(Henüz kayıt yok)'}
               </svg>
             </div>
             <p className="text-slate-400 text-[11px] font-semibold uppercase tracking-wide">Toplam Ciro</p>
-            <p className="text-slate-800 text-xl font-bold tabular-nums mt-0.5">{fmt(tumZamanlarCiro)} ₺</p>
+            <p className="text-slate-800 text-xl font-bold mt-0.5"><AnimatedNumber value={tumZamanlarCiro} /> ₺</p>
           </div>
         </div>
 
