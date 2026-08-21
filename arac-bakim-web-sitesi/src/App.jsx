@@ -8,6 +8,16 @@ import KayitEkle from './pages/KayitEkle';
 import BakimMerkezi from './pages/BakimMerkezi';
 import ProtectedRoute from './components/ProtectedRoute';
 import ErrorBoundary from './components/ErrorBoundary';
+import PageTransition from './components/PageTransition';
+import BottomNavigation from './components/BottomNavigation';
+import { useLocation } from 'react-router-dom';
+
+// Login sayfasında navigasyonu gizleyen sarmalayıcı
+function RouteAwareBottomNav() {
+  const location = useLocation();
+  if (location.pathname === '/login') return null;
+  return <BottomNavigation />;
+}
 
 function App() {
   const [user, setUser] = useState(null);
@@ -47,6 +57,7 @@ function App() {
   return (
     <ErrorBoundary>
       <Router basename={basename}>
+        <PageTransition>
         <Routes>
           <Route
             path="/login"
@@ -77,6 +88,11 @@ function App() {
             }
           />
         </Routes>
+        </PageTransition>
+        {/* Alt navigasyon sayfa geçiş animasyonunun DIŞINDA - sabit kalır */}
+        {user && (
+          <RouteAwareBottomNav />
+        )}
       </Router>
     </ErrorBoundary>
   );

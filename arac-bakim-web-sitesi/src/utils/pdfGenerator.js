@@ -119,10 +119,6 @@ export const generateHizmetFormuPDF = async (hizmet, logoSrc) => {
               <td style="padding:7px 10px; border-bottom:1px solid #e5e7eb; line-height:1.4;">${hizmet.fullCheckupSonucu.replace(/\n/g, '<br>')}</td>
             </tr>
             ` : ''}
-            <tr style="background-color:#eff6ff;">
-              <td style="padding:9px 10px; font-weight:700; color:#1e40af; border-bottom:1px solid #bfdbfe; font-size:10pt;">Alınan Ücret</td>
-              <td style="padding:9px 10px; border-bottom:1px solid #bfdbfe; font-weight:800; color:#1e40af; font-size:11pt;">${formatFiyat(hizmet.alınanUcret)} TL</td>
-            </tr>
           </tbody>
         </table>
 
@@ -278,6 +274,38 @@ export const generateHizmetFormuPDF = async (hizmet, logoSrc) => {
     tempContainer.style.backgroundColor = '#ffffff';
     tempContainer.innerHTML = page1Html + (page2Html ? `<div style="page-break-before:always;"></div>` + page2Html : '');
     document.body.appendChild(tempContainer);
+
+    // html2canvas oklch/oklab/lab gibi modern renk fonksiyonlarını desteklemez.
+    // Tarayıcı hesaplanmış stillerde bu formatları üretebildiği için tüm renkleri
+    // rgb()'ye çeviren bir yardımcı fonksiyon:
+    const toRgb = (colorStr) => {
+      try {
+        const d = document.createElement('div');
+        d.style.color = colorStr;
+        document.body.appendChild(d);
+        const c = getComputedStyle(d).color;
+        document.body.removeChild(d);
+        return c;
+      } catch {
+        return colorStr;
+      }
+    };
+
+    const sanitizeColors = (root) => {
+      if (!root) return;
+      const elements = [root, ...root.querySelectorAll('*')];
+      elements.forEach((el) => {
+        const cs = getComputedStyle(el);
+        ['color', 'backgroundColor', 'borderTopColor', 'borderRightColor', 'borderBottomColor', 'borderLeftColor', 'outlineColor'].forEach((prop) => {
+          const val = cs[prop];
+          if (val && /oklch|oklab|\blab\(|lch\(|color\(/i.test(val)) {
+            el.style[prop] = toRgb(val);
+          }
+        });
+      });
+    };
+
+    sanitizeColors(tempContainer);
 
     // Font yüklenmesini bekle
     await new Promise((resolve) => {

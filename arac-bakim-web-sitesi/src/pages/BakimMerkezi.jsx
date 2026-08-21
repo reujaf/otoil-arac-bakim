@@ -3,7 +3,6 @@ import { db, auth } from '../firebaseConfig';
 import { collection, query, onSnapshot, doc, updateDoc, deleteDoc, Timestamp } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
-import BottomNavigation from '../components/BottomNavigation';
 import logo from '../assets/otoil-logo.png';
 import { generateHizmetFormuPDF } from '../utils/pdfGenerator';
 
@@ -368,38 +367,44 @@ function BakimMerkezi() {
 
   if (loading) {
     return (
-      <div className="glass-bg flex items-center justify-center">
-        <div className="glass-card rounded-2xl px-8 py-4">
-          <p className="text-slate-500 text-sm">Yükleniyor...</p>
+      <div className="min-h-screen bg-[#f4f7fb] flex items-center justify-center">
+        <div className="bg-white rounded-lg px-8 py-4 ring-1 ring-slate-200">
+          <p className="text-slate-500 text-sm animate-pulse">Yükleniyor...</p>
         </div>
       </div>
     );
   }
 
       return (
-        <div className="glass-bg pb-24">
-      {/* Navigation */}
-      <nav className="glass-card-solid sticky top-0 z-30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-3">
-            <img src={logo} alt="OTOIL" className="h-9 w-auto cursor-pointer" onClick={() => navigate('/')} />
-            <div className="flex items-center gap-3">
-              <span className="hidden md:block text-xs text-slate-500 truncate max-w-[120px]">{user?.email}</span>
-              <button onClick={handleLogout} className="glass-btn-white text-slate-600 px-3 py-1.5 rounded-xl text-xs font-medium">
-                Çıkış
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
+        <div className="min-h-screen bg-[#f4f7fb] pb-28">
+      {/* HERO HEADER */}
+      <header className="relative overflow-hidden rounded-b-2xl bg-gradient-to-br from-[#0c4a6e] via-[#1273a8] to-[#26a9e0] px-5 pt-6 pb-10">
+        {/* Üstten aşağı beyaz geçiş (logo bölgesi için) */}
+        <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-white via-white/85 to-transparent pointer-events-none" />
+        {/* dekoratif şekiller */}
+        <div className="absolute -top-16 -right-16 w-56 h-56 rounded-full bg-white/10" />
+        <div className="absolute top-20 -left-20 w-48 h-48 rounded-full bg-cyan-300/10" />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-5 gap-3">
-          <h1 className="text-2xl font-bold text-slate-800">Bakım Merkezi</h1>
-          
+        <div className="relative z-10 max-w-5xl mx-auto">
+          <div className="flex items-center justify-between mb-5">
+            <img src={logo} alt="OTOIL" className="h-9 w-auto cursor-pointer" onClick={() => navigate('/')} />
+            <button
+              onClick={handleLogout}
+              title="Hesap değiştir"
+              className="relative z-10 flex items-center justify-center w-9 h-9 rounded-full bg-white/70 hover:bg-white text-[#0c4a6e] transition-all active:scale-95"
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+            </button>
+          </div>
+
+          <p className="text-white/70 text-sm font-medium">Tüm Kayıtlar</p>
+          <h1 className="text-white text-2xl sm:text-3xl font-extrabold tracking-tight mt-0.5">Bakım Merkezi</h1>
+
           {/* Arama Kutusu */}
-          <div className="relative w-full md:w-80">
-            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+          <div className="relative w-full mt-5">
+            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
               <svg className="h-4 w-4 text-slate-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                 <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
               </svg>
@@ -409,10 +414,10 @@ function BakimMerkezi() {
               value={aramaMetni}
               onChange={(e) => setAramaMetni(e.target.value)}
               placeholder="Plaka veya müşteri adı ile ara..."
-              className="glass-input block w-full pl-10 pr-9 py-2.5 rounded-2xl text-sm text-slate-700 placeholder-slate-400 focus:outline-none"
+              className="block w-full pl-11 pr-10 py-3 rounded-lg bg-white/95 backdrop-blur-md text-sm text-slate-700 placeholder-slate-400 ring-1 ring-white/40 focus:outline-none focus:ring-2 focus:ring-white/70 transition-all"
             />
             {aramaMetni && (
-              <button onClick={() => setAramaMetni('')} className="absolute inset-y-0 right-0 pr-3 flex items-center">
+              <button onClick={() => setAramaMetni('')} className="absolute inset-y-0 right-0 pr-3.5 flex items-center">
                 <svg className="h-4 w-4 text-slate-400 hover:text-slate-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
                 </svg>
@@ -420,17 +425,19 @@ function BakimMerkezi() {
             )}
           </div>
         </div>
+      </header>
 
+      <main className="max-w-5xl mx-auto px-4 -mt-4 relative z-20">
         {aramaMetni && (
           <div className="mb-3 text-xs text-slate-500 font-medium">{filtrelenmisKayitlar.length} kayıt bulundu</div>
         )}
 
         {tumKayitlar.length === 0 ? (
-          <div className="glass-card rounded-3xl p-12 text-center">
+          <div className="bg-white rounded-lg p-12 text-center ring-1 ring-slate-200">
             <p className="text-slate-400">Henüz kayıt bulunmamaktadır.</p>
           </div>
         ) : filtrelenmisKayitlar.length === 0 ? (
-          <div className="glass-card rounded-3xl p-12 text-center">
+          <div className="bg-white rounded-lg p-12 text-center ring-1 ring-slate-200">
             <p className="text-slate-400">Arama kriterinize uygun kayıt bulunamadı.</p>
             <button onClick={() => setAramaMetni('')} className="mt-3 text-[#26a9e0] hover:text-[#1e8fc4] text-sm font-medium">
               Aramayı temizle
@@ -442,10 +449,10 @@ function BakimMerkezi() {
               <div
                 key={hizmet.id}
                 onClick={() => setSelectedHizmet(hizmet.id)}
-                className="glass-card rounded-2xl cursor-pointer transition-all duration-200 hover:scale-[1.03] hover:shadow-xl overflow-hidden"
+                className="bg-white rounded-lg cursor-pointer ring-1 ring-slate-200 transition-all duration-200 hover:-translate-y-0.5 hover:ring-slate-300 overflow-hidden"
               >
                 <div className="p-2.5 pb-2">
-                  <div className="rounded-xl px-2.5 py-1.5 text-center relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #26a9e0, #0c4a6e)' }}>
+                  <div className="rounded-md px-2.5 py-1.5 text-center relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #26a9e0, #0c4a6e)' }}>
                     <span className="relative text-sm font-black text-white tracking-wider uppercase">
                       {hizmet.plaka}
                     </span>
@@ -473,7 +480,7 @@ function BakimMerkezi() {
             onClick={() => setSelectedHizmet(null)}
           >
             <div 
-              className="relative glass-modal rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+              className="relative glass-modal rounded-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="p-6">
@@ -486,67 +493,67 @@ function BakimMerkezi() {
                         <h3 className="text-xl font-bold text-slate-800">Hizmet Detayları</h3>
                         <button
                           onClick={() => setSelectedHizmet(null)}
-                          className="text-slate-400 hover:text-slate-600 text-xl font-bold w-8 h-8 flex items-center justify-center rounded-xl glass-btn-white transition-colors"
+                          className="text-slate-400 hover:text-slate-600 text-xl font-bold w-8 h-8 flex items-center justify-center rounded-md glass-btn-white transition-colors"
                         >
                           ×
                         </button>
                       </div>
                       <div className="space-y-3">
-                        <div className="glass-card rounded-2xl p-4">
+                        <div className="glass-card rounded-md p-4">
                           <span className="text-xs text-slate-400 font-medium">Müşteri</span>
                           <p className="text-base text-slate-800 font-semibold mt-0.5">{getMusteriAdi(hizmet)}</p>
                         </div>
                         {hizmet.telefon && (
-                          <div className="glass-card rounded-2xl p-4">
+                          <div className="glass-card rounded-md p-4">
                             <span className="text-xs text-slate-400 font-medium">Telefon</span>
                             <p className="text-base text-slate-800 mt-0.5">{hizmet.telefon}</p>
                           </div>
                         )}
                         <div className="grid grid-cols-2 gap-3">
-                          <div className="glass-card rounded-2xl p-4">
+                          <div className="glass-card rounded-md p-4">
                             <span className="text-xs text-slate-400 font-medium">Plaka</span>
                             <p className="text-base text-slate-800 font-semibold mt-0.5">{hizmet.plaka}</p>
                           </div>
-                          <div className="glass-card rounded-2xl p-4">
+                          <div className="glass-card rounded-md p-4">
                             <span className="text-xs text-slate-400 font-medium">Araç Modeli</span>
                             <p className="text-base text-slate-800 mt-0.5">{hizmet.aracModeli}</p>
                           </div>
                         </div>
                         <div className="grid grid-cols-2 gap-3">
                           {hizmet.personel && (
-                            <div className="glass-card rounded-2xl p-4">
+                            <div className="glass-card rounded-md p-4">
                               <span className="text-xs text-slate-400 font-medium">Personel</span>
                               <p className="text-base text-slate-800 mt-0.5">{hizmet.personel}</p>
                             </div>
                           )}
-                          <div className="glass-card rounded-2xl p-4">
+                          <div className="glass-card rounded-md p-4">
                             <span className="text-xs text-slate-400 font-medium">Hizmet Tarihi</span>
                             <p className="text-base text-slate-800 mt-0.5">{formatDate(hizmet.hizmetTarihi)}</p>
                           </div>
                         </div>
                         {hizmet.sonrakiBakimTarihi && (
-                          <div className="glass-card rounded-2xl p-4">
+                          <div className="glass-card rounded-md p-4">
                             <span className="text-xs text-slate-400 font-medium">Sonraki Bakım</span>
                             <p className="text-base text-slate-800 mt-0.5">{formatDate(hizmet.sonrakiBakimTarihi)}</p>
                           </div>
                         )}
-                        <div className="glass-card rounded-2xl p-4">
+                        <div className="glass-card rounded-md p-4">
                           <span className="text-xs text-slate-400 font-medium">Yapılan İşlemler</span>
                           <p className="text-sm text-slate-700 mt-1">{hizmet.yapilanIslemler}</p>
                         </div>
                         {hizmet.fullCheckupSonucu && (
-                          <div className="glass-card rounded-2xl p-4">
+                          <div className="glass-card rounded-md p-4">
                             <span className="text-xs text-slate-400 font-medium">Full Check-up Sonucu</span>
                             <p className="text-sm text-slate-700 mt-1 whitespace-pre-wrap">{hizmet.fullCheckupSonucu}</p>
                           </div>
                         )}
                         {(hizmet.ustaNotu || hizmet.ustaGorusu) && (
-                          <div className="glass-card rounded-2xl p-4">
+                          <div className="glass-card rounded-md p-4">
                             <span className="text-xs text-slate-400 font-medium">Usta Görüşü & Özel Notlar</span>
                             <p className="text-sm text-slate-700 mt-1 whitespace-pre-wrap">{hizmet.ustaNotu || hizmet.ustaGorusu}</p>
                           </div>
                         )}
-                        <div className="rounded-2xl p-4" style={{ background: 'linear-gradient(135deg, rgba(38,169,224,0.15), rgba(14,165,233,0.1))' }}>
+                        <div className="rounded-md p-4" style={{ background: 'linear-gradient(135deg, rgba(38,169,224,0.15), rgba(14,165,233,0.1))' }}>
                           <span className="text-xs text-[#1e8fc4] font-medium">Alınan Ücret</span>
                           <p className="text-xl font-bold text-slate-800 mt-0.5">{formatFiyat(hizmet.alınanUcret)} ₺</p>
                         </div>
@@ -554,7 +561,7 @@ function BakimMerkezi() {
                       <div className="mt-5 flex justify-end gap-2.5 flex-wrap">
                         <button
                           onClick={() => handleEdit(hizmet)}
-                          className="glass-btn-white text-slate-600 px-5 py-2.5 rounded-2xl text-sm font-semibold flex items-center gap-2 border border-slate-200/50"
+                          className="glass-btn-white text-slate-600 px-5 py-2.5 rounded-md text-sm font-semibold flex items-center gap-2 border border-slate-200/50"
                         >
                           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -564,7 +571,7 @@ function BakimMerkezi() {
                         {isBakimiGecmis(hizmet.sonrakiBakimTarihi) && hizmet.telefon && (
                           <button
                             onClick={() => handleWhatsAppMesaj(hizmet)}
-                            className="bg-emerald-500 hover:bg-emerald-600 text-white px-5 py-2.5 rounded-2xl text-sm font-semibold shadow-lg shadow-emerald-500/25 transition-all flex items-center gap-2"
+                            className="bg-emerald-500 hover:bg-emerald-600 text-white px-5 py-2.5 rounded-md text-sm font-semibold transition-all flex items-center gap-2"
                           >
                             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                               <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
@@ -574,7 +581,7 @@ function BakimMerkezi() {
                         )}
                         <button
                           onClick={() => handlePDFOlustur(hizmet)}
-                          className="glass-btn-blue text-white px-5 py-2.5 rounded-2xl text-sm font-semibold"
+                          className="glass-btn-blue text-white px-5 py-2.5 rounded-md text-sm font-semibold"
                         >
                           PDF Paylaş
                         </button>
@@ -582,7 +589,7 @@ function BakimMerkezi() {
                       <div className="mt-4 pt-4 border-t border-slate-200 flex justify-end">
                         <button
                           onClick={() => handleDelete(hizmet)}
-                          className="bg-red-500 hover:bg-red-600 text-white px-5 py-2.5 rounded-2xl text-sm font-semibold flex items-center gap-2 transition-colors"
+                          className="bg-red-500 hover:bg-red-600 text-white px-5 py-2.5 rounded-md text-sm font-semibold flex items-center gap-2 transition-colors"
                         >
                           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -605,69 +612,69 @@ function BakimMerkezi() {
             onClick={handleCancelEdit}
           >
             <div 
-              className="relative glass-modal rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto overflow-x-hidden"
+              className="relative glass-modal rounded-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto overflow-x-hidden"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="p-5">
                 <div className="flex justify-between items-center mb-5">
                   <h3 className="text-xl font-bold text-slate-800">Kayıt Düzenle</h3>
-                  <button onClick={handleCancelEdit} className="text-slate-400 hover:text-slate-600 text-xl font-bold w-8 h-8 flex items-center justify-center rounded-xl glass-btn-white">×</button>
+                  <button onClick={handleCancelEdit} className="text-slate-400 hover:text-slate-600 text-xl font-bold w-8 h-8 flex items-center justify-center rounded-md glass-btn-white">×</button>
                 </div>
 
                 <form onSubmit={(e) => { e.preventDefault(); handleUpdate(); }} className="space-y-3">
                   <div>
                     <label htmlFor="edit-adSoyad" className="block text-slate-600 text-xs font-semibold mb-1.5">Ad Soyad *</label>
-                    <input type="text" id="edit-adSoyad" name="adSoyad" value={editFormData.adSoyad || ''} onChange={handleEditChange} required className="glass-input w-full py-2.5 px-4 rounded-2xl text-sm text-slate-700 placeholder-slate-400 focus:outline-none" placeholder="Müşteri adı soyadı" />
+                    <input type="text" id="edit-adSoyad" name="adSoyad" value={editFormData.adSoyad || ''} onChange={handleEditChange} required className="glass-input w-full py-2.5 px-4 rounded-md text-sm text-slate-700 placeholder-slate-400 focus:outline-none" placeholder="Müşteri adı soyadı" />
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label htmlFor="edit-telefon" className="block text-slate-600 text-xs font-semibold mb-1.5">Telefon</label>
-                      <input type="text" id="edit-telefon" name="telefon" value={editFormData.telefon || ''} onChange={handleEditChange} inputMode="tel" className="glass-input w-full py-2.5 px-4 rounded-2xl text-sm text-slate-700 placeholder-slate-400 focus:outline-none" placeholder="05XX XXX XX XX" />
+                      <input type="text" id="edit-telefon" name="telefon" value={editFormData.telefon || ''} onChange={handleEditChange} inputMode="tel" className="glass-input w-full py-2.5 px-4 rounded-md text-sm text-slate-700 placeholder-slate-400 focus:outline-none" placeholder="05XX XXX XX XX" />
                     </div>
                     <div>
                       <label htmlFor="edit-plaka" className="block text-slate-600 text-xs font-semibold mb-1.5">Plaka *</label>
-                      <input type="text" id="edit-plaka" name="plaka" value={editFormData.plaka || ''} onChange={handleEditChange} required className="glass-input w-full py-2.5 px-4 rounded-2xl text-sm text-slate-700 placeholder-slate-400 focus:outline-none uppercase" placeholder="34 ABC 123" />
+                      <input type="text" id="edit-plaka" name="plaka" value={editFormData.plaka || ''} onChange={handleEditChange} required className="glass-input w-full py-2.5 px-4 rounded-md text-sm text-slate-700 placeholder-slate-400 focus:outline-none uppercase" placeholder="34 ABC 123" />
                     </div>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <label htmlFor="edit-aracModeli" className="block text-slate-600 text-xs font-semibold mb-1.5">Araç Modeli *</label>
-                      <input type="text" id="edit-aracModeli" name="aracModeli" value={editFormData.aracModeli || ''} onChange={handleEditChange} required className="glass-input w-full py-2.5 px-4 rounded-2xl text-sm text-slate-700 placeholder-slate-400 focus:outline-none" placeholder="Örn: Toyota Corolla 2020" />
+                      <input type="text" id="edit-aracModeli" name="aracModeli" value={editFormData.aracModeli || ''} onChange={handleEditChange} required className="glass-input w-full py-2.5 px-4 rounded-md text-sm text-slate-700 placeholder-slate-400 focus:outline-none" placeholder="Örn: Toyota Corolla 2020" />
                     </div>
                     <div>
                       <label htmlFor="edit-personel" className="block text-slate-600 text-xs font-semibold mb-1.5">Personel</label>
-                      <input type="text" id="edit-personel" name="personel" value={editFormData.personel || ''} onChange={handleEditChange} className="glass-input w-full py-2.5 px-4 rounded-2xl text-sm text-slate-700 placeholder-slate-400 focus:outline-none" placeholder="Şahin Lale" />
+                      <input type="text" id="edit-personel" name="personel" value={editFormData.personel || ''} onChange={handleEditChange} className="glass-input w-full py-2.5 px-4 rounded-md text-sm text-slate-700 placeholder-slate-400 focus:outline-none" placeholder="Şahin Lale" />
                     </div>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div className="min-w-0">
                       <label htmlFor="edit-hizmetTarihi" className="block text-slate-600 text-xs font-semibold mb-1.5">Hizmet Tarihi *</label>
-                      <input type="date" id="edit-hizmetTarihi" name="hizmetTarihi" value={editFormData.hizmetTarihi || ''} onChange={handleEditChange} required className="glass-input w-full min-w-0 py-2.5 px-3 rounded-2xl text-sm text-slate-700 focus:outline-none" />
+                      <input type="date" id="edit-hizmetTarihi" name="hizmetTarihi" value={editFormData.hizmetTarihi || ''} onChange={handleEditChange} required className="glass-input w-full min-w-0 py-2.5 px-3 rounded-md text-sm text-slate-700 focus:outline-none" />
                     </div>
                     <div className="min-w-0">
                       <label htmlFor="edit-sonrakiBakimTarihi" className="block text-slate-600 text-xs font-semibold mb-1.5">Sonraki Bakım Tarihi</label>
-                      <input type="date" id="edit-sonrakiBakimTarihi" name="sonrakiBakimTarihi" value={editFormData.sonrakiBakimTarihi || ''} onChange={handleEditChange} className="glass-input w-full min-w-0 py-2.5 px-3 rounded-2xl text-sm text-slate-700 focus:outline-none" />
+                      <input type="date" id="edit-sonrakiBakimTarihi" name="sonrakiBakimTarihi" value={editFormData.sonrakiBakimTarihi || ''} onChange={handleEditChange} className="glass-input w-full min-w-0 py-2.5 px-3 rounded-md text-sm text-slate-700 focus:outline-none" />
                     </div>
                   </div>
                   <div>
                     <label htmlFor="edit-alınanUcret" className="block text-slate-600 text-xs font-semibold mb-1.5">Alınan Ücret (₺) *</label>
-                    <input type="text" id="edit-alınanUcret" name="alınanUcret" value={editFormData.alınanUcret || ''} onChange={handleEditChange} inputMode="numeric" pattern="[0-9.,]*" required className="glass-input w-full py-2.5 px-4 rounded-2xl text-sm text-slate-700 placeholder-slate-400 focus:outline-none" placeholder="0,00" />
+                    <input type="text" id="edit-alınanUcret" name="alınanUcret" value={editFormData.alınanUcret || ''} onChange={handleEditChange} inputMode="numeric" pattern="[0-9.,]*" required className="glass-input w-full py-2.5 px-4 rounded-md text-sm text-slate-700 placeholder-slate-400 focus:outline-none" placeholder="0,00" />
                   </div>
                   <div>
                     <label htmlFor="edit-yapilanIslemler" className="block text-slate-600 text-xs font-semibold mb-1.5">Yapılan İşlemler *</label>
-                    <textarea id="edit-yapilanIslemler" name="yapilanIslemler" value={editFormData.yapilanIslemler || ''} onChange={handleEditChange} required rows="3" className="glass-input w-full py-2.5 px-4 rounded-2xl text-sm text-slate-700 placeholder-slate-400 focus:outline-none resize-none" placeholder="Yapılan işlemleri detaylı olarak yazın..." />
+                    <textarea id="edit-yapilanIslemler" name="yapilanIslemler" value={editFormData.yapilanIslemler || ''} onChange={handleEditChange} required rows="3" className="glass-input w-full py-2.5 px-4 rounded-md text-sm text-slate-700 placeholder-slate-400 focus:outline-none resize-none" placeholder="Yapılan işlemleri detaylı olarak yazın..." />
                   </div>
                   <div>
                     <label htmlFor="edit-fullCheckupSonucu" className="block text-slate-600 text-xs font-semibold mb-1.5">Full Check-up Sonucu</label>
-                    <textarea id="edit-fullCheckupSonucu" name="fullCheckupSonucu" value={editFormData.fullCheckupSonucu || ''} onChange={handleEditChange} rows="3" className="glass-input w-full py-2.5 px-4 rounded-2xl text-sm text-slate-700 placeholder-slate-400 focus:outline-none resize-none" placeholder="Full check-up sonuçları..." />
+                    <textarea id="edit-fullCheckupSonucu" name="fullCheckupSonucu" value={editFormData.fullCheckupSonucu || ''} onChange={handleEditChange} rows="3" className="glass-input w-full py-2.5 px-4 rounded-md text-sm text-slate-700 placeholder-slate-400 focus:outline-none resize-none" placeholder="Full check-up sonuçları..." />
                   </div>
                   <div>
                     <label htmlFor="edit-ustaNotu" className="block text-slate-600 text-xs font-semibold mb-1.5">Usta Görüşü & Özel Notlar (PDF 2. Sayfada Görünür)</label>
-                    <textarea id="edit-ustaNotu" name="ustaNotu" value={editFormData.ustaNotu || ''} onChange={handleEditChange} rows="3" className="glass-input w-full py-2.5 px-4 rounded-2xl text-sm text-slate-700 placeholder-slate-400 focus:outline-none resize-none" placeholder="Usta görüşü ve özel notlar..." />
+                    <textarea id="edit-ustaNotu" name="ustaNotu" value={editFormData.ustaNotu || ''} onChange={handleEditChange} rows="3" className="glass-input w-full py-2.5 px-4 rounded-md text-sm text-slate-700 placeholder-slate-400 focus:outline-none resize-none" placeholder="Usta görüşü ve özel notlar..." />
                   </div>
                   <div className="flex justify-end gap-2.5 pt-4">
-                    <button type="button" onClick={handleCancelEdit} disabled={isUpdating} className="glass-btn-white text-slate-600 px-5 py-2.5 rounded-2xl text-sm font-semibold border border-slate-200/50 disabled:opacity-50">İptal</button>
-                    <button type="submit" disabled={isUpdating} className="glass-btn-blue text-white py-2.5 px-6 rounded-2xl text-sm font-semibold disabled:opacity-50 flex items-center gap-2">
+                    <button type="button" onClick={handleCancelEdit} disabled={isUpdating} className="glass-btn-white text-slate-600 px-5 py-2.5 rounded-md text-sm font-semibold border border-slate-200/50 disabled:opacity-50">İptal</button>
+                    <button type="submit" disabled={isUpdating} className="glass-btn-blue text-white py-2.5 px-6 rounded-md text-sm font-semibold disabled:opacity-50 flex items-center gap-2">
                       {isUpdating ? (
                         <>
                           <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
@@ -687,8 +694,6 @@ function BakimMerkezi() {
           </div>
         )}
       </main>
-
-      <BottomNavigation />
     </div>
   );
 }

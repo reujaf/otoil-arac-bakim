@@ -4,7 +4,6 @@ import { signOut } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
 import { collection, query, onSnapshot } from 'firebase/firestore';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
-import BottomNavigation from '../components/BottomNavigation';
 import logo from '../assets/otoil-logo.png';
 
 const OTOILAI_WORKER_URL = import.meta.env.VITE_OTOILAI_WORKER_URL || 'https://otoil-gemini.burakksipahi.workers.dev';
@@ -31,6 +30,7 @@ function Dashboard() {
   const [otoilAiCacheUsed, setOtoilAiCacheUsed] = useState(false);
   const [otoilAiTruncated, setOtoilAiTruncated] = useState(false);
   const [otoilAiExpanded, setOtoilAiExpanded] = useState(false); // strateji metni kutusu açık mı
+  const [menuAcik, setMenuAcik] = useState(false); // hesap menüsü açık mı
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((currentUser) => {
@@ -201,171 +201,223 @@ ${sonKayitlar || '(Henüz kayıt yok)'}
     }
   };
 
+  // Bugünün tarihi/selamlama
+  const now = new Date();
+  const saat = now.getHours();
+  const selam = saat < 6 ? 'İyi geceler' : saat < 12 ? 'Günaydın' : saat < 18 ? 'İyi günler' : 'İyi akşamlar';
+  const bugunStr = now.toLocaleDateString('tr-TR', { weekday: 'long', day: 'numeric', month: 'long' });
+  const haftalikToplam = gunlukCiroVerileri.reduce((t, g) => t + g.ciro, 0);
+  const hizmetSayisiBugun = hizmetlerListesi.filter((h) => {
+    if (!h.hizmetTarihi) return false;
+    const d = h.hizmetTarihi.toDate();
+    const b = new Date(); b.setHours(0, 0, 0, 0);
+    return d >= b;
+  }).length;
+
   return (
-    <div className="glass-bg pb-24">
-      <nav className="glass-card-solid sticky top-0 z-30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-3">
+    <div className="min-h-screen bg-[#f4f7fb] pb-28">
+      {/* HERO HEADER */}
+      <header className="relative overflow-hidden rounded-b-2xl bg-gradient-to-br from-[#0c4a6e] via-[#1273a8] to-[#26a9e0] px-5 pt-6 pb-16">
+        {/* Üstten aşağı beyaz geçiş (logo bölgesi için) */}
+        <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-white via-white/85 to-transparent pointer-events-none" />
+        {/* dekoratif şekiller */}
+        <div className="absolute -top-16 -right-16 w-56 h-56 rounded-full bg-white/10" />
+        <div className="absolute top-20 -left-20 w-48 h-48 rounded-full bg-cyan-300/10" />
+        <div className="absolute bottom-4 right-8 w-24 h-24 rounded-full border border-white/15" />
+
+        <div className="relative z-10 max-w-3xl mx-auto">
+          <div className="flex items-start justify-between mb-7">
             <img src={logo} alt="OTOIL" className="h-9 w-auto cursor-pointer" onClick={() => navigate('/')} />
-            <div className="flex items-center gap-3">
-              <span className="hidden sm:block text-xs text-slate-500 truncate max-w-[120px]">{user?.email}</span>
-              <button onClick={handleLogout} className="glass-btn-white text-slate-600 px-3 py-1.5 rounded-xl text-xs font-medium">
-                Çıkış
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
-        {/* OtoilAI */}
-        <div className="glass-card rounded-3xl p-5 mb-4">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#26a9e0] to-[#0c4a6e] flex items-center justify-center shadow-lg shadow-sky-500/20">
-              <span className="text-white text-lg font-bold">AI</span>
-            </div>
-            <div>
-              <h1 className="text-xl font-bold text-slate-800">OtoilAI</h1>
-              <p className="text-slate-500 text-xs">Kayıtlarınıza göre günlük iş stratejileri</p>
-            </div>
-          </div>
-          {OTOILAI_WORKER_URL ? (
-            <>
-              <button
-                onClick={fetchOtoilAiStrategies}
-                disabled={otoilAiLoading || (!!otoilAiText && otoilAiCacheUsed)}
-                className="glass-btn-blue text-white px-4 py-2.5 rounded-2xl text-sm font-semibold disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
+            <div className="relative z-10 flex items-center gap-2">
+              <div
+                className={`overflow-hidden transition-all duration-300 ease-out ${
+                  menuAcik ? 'max-w-40 opacity-100 translate-x-0' : 'max-w-0 opacity-0 translate-x-4'
+                }`}
               >
-                {otoilAiLoading ? (
-                  <>
-                    <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                    </svg>
-                    Stratejiler hazırlanıyor...
-                  </>
-                ) : otoilAiText && otoilAiCacheUsed ? (
-                  <>Bugünkü stratejiler yüklendi (yarın tekrar isteyebilirsiniz)</>
-                ) : (
-                  <>
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                    </svg>
-                    Stratejileri Getir
-                  </>
-                )}
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-1.5 bg-white text-[#0c4a6e] px-3.5 py-2 rounded-md text-xs font-semibold shadow-sm hover:bg-sky-50 transition-colors active:scale-95 whitespace-nowrap"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
+                  Hesap Değiştir
+                </button>
+              </div>
+              <button
+                onClick={() => setMenuAcik((v) => !v)}
+                title="Hesap"
+                className={`flex items-center justify-center w-9 h-9 shrink-0 rounded-full bg-white/70 hover:bg-white text-[#0c4a6e] transition-all active:scale-95 ${menuAcik ? 'ring-2 ring-white' : ''}`}
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
               </button>
-              {otoilAiError && (
-                <p className="mt-3 text-sm text-red-600 bg-red-50 rounded-xl px-3 py-2">{otoilAiError}</p>
-              )}
-              {otoilAiText && (
-                <div className="mt-4 rounded-2xl bg-slate-50 border border-slate-100 overflow-hidden">
-                  <button
-                    type="button"
-                    onClick={() => setOtoilAiExpanded((e) => !e)}
-                    className="w-full flex items-center justify-between gap-2 px-4 py-3 text-left hover:bg-slate-100/80 transition-colors rounded-2xl"
-                  >
-                    <span className="text-sm font-medium text-slate-600">
-                      Günlük stratejiler {otoilAiCacheUsed && <span className="text-slate-400">(günde bir kez güncellenir)</span>}
-                    </span>
-                    <svg
-                      className={`w-5 h-5 text-slate-400 shrink-0 transition-transform ${otoilAiExpanded ? 'rotate-180' : ''}`}
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth={2}
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </button>
-                  {otoilAiExpanded && (
-                    <>
-                      {otoilAiTruncated && (
-                        <p className="px-4 pb-2 text-amber-700 text-xs bg-amber-50 border-b border-amber-100/80">
-                          Metin API token limiti nedeniyle kesilmiş olabilir (daha uzun metin için Worker’da maxOutputTokens artırılabilir).
-                        </p>
-                      )}
-                      <div className="px-4 pb-4 max-h-[70vh] min-h-[120px] overflow-y-auto text-slate-800 text-sm whitespace-pre-wrap leading-relaxed scroll-smooth">
-                        {otoilAiText}
-                      </div>
-                    </>
-                  )}
-                </div>
-              )}
-            </>
-          ) : (
-            <p className="text-sm text-slate-500">
-              OtoilAI kullanmak için Cloudflare Worker kurulumu ve <code className="bg-slate-100 px-1 rounded">VITE_OTOILAI_WORKER_URL</code> ayarı gerekiyor. Proje içindeki <code className="bg-slate-100 px-1 rounded">cloudflare-worker/README.md</code> dosyasına bakın.
-            </p>
-          )}
-        </div>
-
-        {/* Grafik */}
-        <div className="glass-card rounded-3xl p-5 mb-4">
-          <div className="mb-3">
-            <p className="text-slate-400 text-xs font-medium">Haftalık performans</p>
-            <h2 className="text-base font-bold text-slate-800">Günlük ciro</h2>
-          </div>
-          {gunlukCiroVerileri.length > 0 ? (
-            <div className="overflow-hidden rounded-xl">
-              <ResponsiveContainer width="100%" height={180}>
-                <AreaChart data={gunlukCiroVerileri} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="ciroGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#26a9e0" stopOpacity={0.25} />
-                      <stop offset="100%" stopColor="#26a9e0" stopOpacity={0.02} />
-                    </linearGradient>
-                  </defs>
-                  <XAxis dataKey="gun" stroke="#94a3b8" style={{ fontSize: 11 }} tickLine={false} axisLine={false} />
-                  <YAxis stroke="#94a3b8" style={{ fontSize: 10 }} tickFormatter={(v) => (v >= 1000 ? `${(v / 1000).toFixed(0)}K` : v)} tickLine={false} axisLine={false} domain={[0, 'auto']} />
-                  <Tooltip
-                    contentStyle={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 12, boxShadow: '0 4px 12px rgba(0,0,0,0.06)', fontSize: 13 }}
-                    formatter={(v) => [`${fmt(v)} ₺`, 'Ciro']}
-                    labelFormatter={(_, p) => p?.[0]?.payload?.tarih || ''}
-                  />
-                  <Area type="monotone" dataKey="ciro" stroke="#26a9e0" strokeWidth={2.5} fill="url(#ciroGrad)" fillOpacity={1} animationDuration={800} baseValue={0} />
-                </AreaChart>
-              </ResponsiveContainer>
             </div>
-          ) : (
-            <div className="h-[180px] flex items-center justify-center text-slate-400 text-sm">Veri yükleniyor...</div>
-          )}
-        </div>
+          </div>
 
-        {/* Bugünün cirosu */}
-        <div className="rounded-3xl p-6 mb-4 relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #26a9e0 0%, #0c4a6e 100%)' }}>
-          <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-white/10" />
-          <div className="absolute -bottom-8 -left-8 w-32 h-32 rounded-full bg-white/5" />
-          <div className="relative z-10">
-            <p className="text-white/70 text-xs font-medium mb-1">Bugünün cirosu</p>
-            <p className="text-white text-3xl font-bold">{fmt(bugunCiro)} ₺</p>
+          <p className="text-white/70 text-sm font-medium">{selam} 👋</p>
+          <h1 className="text-white text-2xl sm:text-3xl font-extrabold tracking-tight mt-0.5 capitalize">{bugunStr}</h1>
+
+          <div className="mt-6 flex items-end justify-between gap-4">
+            <div>
+              <p className="text-sky-100/80 text-xs font-semibold uppercase tracking-wider">Bugünün Cirosu</p>
+              <p className="text-white text-4xl font-extrabold mt-1 tabular-nums tracking-tight">
+                {fmt(bugunCiro)} <span className="text-2xl text-sky-200">₺</span>
+              </p>
+            </div>
+            <div className="bg-white/15 backdrop-blur-md rounded-md px-4 py-2.5 text-center">
+              <p className="text-white text-xl font-bold tabular-nums">{hizmetSayisiBugun}</p>
+              <p className="text-sky-100/80 text-[10px] font-medium uppercase tracking-wide">Bugünkü İşlem</p>
+            </div>
           </div>
         </div>
+      </header>
 
-        {/* Aylık / Tüm zamanlar */}
+      <main className="max-w-3xl mx-auto px-4 -mt-10 relative z-20 space-y-4">
+        {/* İSTATİSTİK KARTLARI */}
         <div className="grid grid-cols-2 gap-3">
-          <div className="glass-card rounded-3xl p-5">
-            <div className="w-9 h-9 rounded-xl bg-sky-100/80 flex items-center justify-center mb-3">
-              <svg className="w-4 h-4 text-[#26a9e0]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <div className="group bg-white/80 backdrop-blur-xl rounded-lg p-5 ring-1 ring-slate-200 transition-all hover:-translate-y-0.5 hover:ring-slate-300">
+            <div className="w-10 h-10 rounded-md bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center mb-3">
+              <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
             </div>
-            <p className="text-slate-400 text-xs font-medium mb-0.5">Aylık ciro</p>
-            <p className="text-slate-800 text-lg font-bold">{fmt(aylikCiro)} ₺</p>
+            <p className="text-slate-400 text-[11px] font-semibold uppercase tracking-wide">Aylık Ciro</p>
+            <p className="text-slate-800 text-xl font-bold tabular-nums mt-0.5">{fmt(aylikCiro)} ₺</p>
           </div>
-          <div className="glass-card rounded-3xl p-5">
-            <div className="w-9 h-9 rounded-xl bg-sky-100/80 flex items-center justify-center mb-3">
-              <svg className="w-4 h-4 text-[#26a9e0]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <div className="group bg-white/80 backdrop-blur-xl rounded-lg p-5 ring-1 ring-slate-200 transition-all hover:-translate-y-0.5 hover:ring-slate-300">
+            <div className="w-10 h-10 rounded-md bg-gradient-to-br from-[#26a9e0] to-indigo-500 flex items-center justify-center mb-3">
+              <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
               </svg>
             </div>
-            <p className="text-slate-400 text-xs font-medium mb-0.5">Toplam ciro</p>
-            <p className="text-slate-800 text-lg font-bold">{fmt(tumZamanlarCiro)} ₺</p>
+            <p className="text-slate-400 text-[11px] font-semibold uppercase tracking-wide">Toplam Ciro</p>
+            <p className="text-slate-800 text-xl font-bold tabular-nums mt-0.5">{fmt(tumZamanlarCiro)} ₺</p>
+          </div>
+        </div>
+
+        {/* GRAFİK */}
+        <div className="bg-white/80 backdrop-blur-xl rounded-lg p-5 ring-1 ring-slate-200">
+          <div className="flex items-center justify-between mb-2">
+            <div>
+              <p className="text-slate-400 text-[11px] font-semibold uppercase tracking-wide">Haftalık Performans</p>
+              <h2 className="text-base font-bold text-slate-800">Son 7 Gün</h2>
+            </div>
+            <div className="bg-sky-50 rounded-md px-3 py-1.5 ring-1 ring-sky-100">
+              <span className="text-[#1273a8] text-xs font-bold tabular-nums">{fmt(haftalikToplam)} ₺</span>
+            </div>
+          </div>
+          {gunlukCiroVerileri.length > 0 ? (
+            <ResponsiveContainer width="100%" height={190}>
+              <AreaChart data={gunlukCiroVerileri} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="ciroGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#26a9e0" stopOpacity={0.35} />
+                    <stop offset="100%" stopColor="#26a9e0" stopOpacity={0.02} />
+                  </linearGradient>
+                </defs>
+                <XAxis dataKey="gun" stroke="#94a3b8" style={{ fontSize: 11 }} tickLine={false} axisLine={false} dy={6} />
+                <YAxis stroke="#94a3b8" style={{ fontSize: 10 }} tickFormatter={(v) => (v >= 1000 ? `${(v / 1000).toFixed(0)}K` : v)} tickLine={false} axisLine={false} domain={[0, 'auto']} />
+                <Tooltip
+                  contentStyle={{ background: '#fff', border: 'none', borderRadius: 16, boxShadow: '0 8px 30px rgba(15,23,42,0.12)', fontSize: 13, padding: '10px 14px' }}
+                  formatter={(v) => [`${fmt(v)} ₺`, 'Ciro']}
+                  labelFormatter={(_, p) => p?.[0]?.payload?.tarih || ''}
+                />
+                <Area type="monotone" dataKey="ciro" stroke="#26a9e0" strokeWidth={3} fill="url(#ciroGrad)" fillOpacity={1} animationDuration={800} baseValue={0}
+                  activeDot={{ r: 5, fill: '#fff', stroke: '#26a9e0', strokeWidth: 3 }} />
+              </AreaChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="h-[190px] flex items-center justify-center text-slate-400 text-sm animate-pulse">Veri yükleniyor...</div>
+          )}
+        </div>
+
+        {/* OtoilAI */}
+        <div className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-[#0c4a6e] rounded-lg p-5">
+          <div className="absolute -top-12 -right-12 w-40 h-40 rounded-full bg-[#26a9e0]/20" />
+          <div className="relative z-10">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 rounded-md bg-gradient-to-br from-[#26a9e0] to-indigo-500 flex items-center justify-center ring-1 ring-white/20">
+                <span className="text-white text-lg font-extrabold">AI</span>
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                  OtoilAI
+                  <span className="text-[9px] font-bold uppercase tracking-widest bg-white/10 text-sky-300 px-2 py-0.5 rounded-sm ring-1 ring-white/15">Beta</span>
+                </h2>
+                <p className="text-slate-400 text-xs">Kayıtlarınıza göre günlük iş stratejileri</p>
+              </div>
+            </div>
+            {OTOILAI_WORKER_URL ? (
+              <>
+                <button
+                  onClick={fetchOtoilAiStrategies}
+                  disabled={otoilAiLoading || (!!otoilAiText && otoilAiCacheUsed)}
+                  className="w-full sm:w-auto bg-gradient-to-r from-[#26a9e0] to-[#1e8fc4] hover:brightness-110 text-white px-5 py-3 rounded-md text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+                >
+                  {otoilAiLoading ? (
+                    <>
+                      <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      </svg>
+                      Stratejiler hazırlanıyor...
+                    </>
+                  ) : otoilAiText && otoilAiCacheUsed ? (
+                    <>✓ Bugünkü stratejiler yüklendi</>
+                  ) : (
+                    <>
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                      </svg>
+                      Stratejileri Getir
+                    </>
+                  )}
+                </button>
+                {otoilAiError && (
+                  <p className="mt-3 text-sm text-red-300 bg-red-500/10 ring-1 ring-red-500/20 rounded-md px-4 py-2.5">{otoilAiError}</p>
+                )}
+                {otoilAiText && (
+                <div className="mt-4 rounded-md bg-white/[0.06] ring-1 ring-white/10 overflow-hidden backdrop-blur-md">
+                    <button
+                      type="button"
+                      onClick={() => setOtoilAiExpanded((e) => !e)}
+                      className="w-full flex items-center justify-between gap-2 px-4 py-3.5 text-left hover:bg-white/[0.04] transition-colors"
+                    >
+                      <span className="text-sm font-semibold text-slate-200">
+                        Günlük stratejiler {otoilAiCacheUsed && <span className="text-slate-500 font-normal">(günde bir kez güncellenir)</span>}
+                      </span>
+                      <svg
+                        className={`w-5 h-5 text-slate-400 shrink-0 transition-transform duration-300 ${otoilAiExpanded ? 'rotate-180' : ''}`}
+                        fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                    {otoilAiExpanded && (
+                      <>
+                        {otoilAiTruncated && (
+                          <p className="px-4 pb-2 text-amber-300 text-xs bg-amber-500/10 border-b border-white/5">
+                            Metin API token limiti nedeniyle kesilmiş olabilir.
+                          </p>
+                        )}
+                        <div className="px-4 pb-4 pt-1 max-h-[60vh] min-h-[120px] overflow-y-auto text-slate-300 text-sm whitespace-pre-wrap leading-relaxed scroll-smooth">
+                          {otoilAiText}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
+              </>
+            ) : (
+              <p className="text-sm text-slate-400">
+                OtoilAI için Cloudflare Worker kurulumu ve <code className="bg-white/10 px-1.5 py-0.5 rounded-sm text-sky-300">VITE_OTOILAI_WORKER_URL</code> ayarı gerekiyor.
+              </p>
+            )}
           </div>
         </div>
       </main>
-
-      <BottomNavigation />
     </div>
   );
 }

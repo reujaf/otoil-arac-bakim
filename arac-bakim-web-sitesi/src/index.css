@@ -24,6 +24,28 @@ body {
   min-height: 100vh;
 }
 
+/* Sayfa geçiş animasyonu */
+@keyframes pageFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.page-transition {
+  animation: pageFadeIn 0.3s ease-out backwards;
+}
+
+/* Animasyon bitince transform etkisini tamamen kaldır ki
+   position:fixed alt navigasyon bozulmasın */
+.page-transition > * {
+  min-height: 100vh;
+}
+
 .glass-card {
   background: #f8fafc;
   border: 1px solid #e2e8f0;

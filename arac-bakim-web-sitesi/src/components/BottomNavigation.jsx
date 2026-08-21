@@ -40,45 +40,36 @@ function BottomNavigation() {
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-40 flex justify-center px-5 pb-5 pt-2 pointer-events-none">
-      <nav
-        className="pointer-events-auto flex items-center justify-around w-full max-w-md h-[62px] rounded-[22px] px-1.5"
-        style={{
-          background: '#ffffff',
-          border: '1px solid #e2e8f0',
-          boxShadow: '0 -1px 3px rgba(0,0,0,0.04), 0 8px 24px rgba(0, 0, 0, 0.08)',
-        }}
-      >
-        {navItems.map((item) => {
-          const active = isActive(item.path);
-          return (
-            <button
-              key={item.path}
-              onClick={() => navigate(item.path)}
-              className="relative flex flex-col items-center justify-center flex-1 h-full min-w-0 rounded-2xl transition-all duration-200 focus:outline-none"
-              aria-label={item.label}
-              aria-current={active ? 'page' : undefined}
-            >
-              {active && (
-                <span
-                  className="absolute inset-x-1.5 top-1/2 -translate-y-1/2 h-[46px] rounded-2xl"
-                  style={{
-                    background: 'linear-gradient(135deg, #26a9e0, #1e8fc4)',
-                    boxShadow: '0 4px 14px rgba(38, 169, 224, 0.3)',
-                  }}
-                />
-              )}
-              <span className={`relative z-10 flex items-center justify-center transition-colors ${active ? 'text-white' : 'text-slate-400'}`}>
-                {item.icon}
-              </span>
-              <span className={`relative z-10 text-[10px] font-semibold mt-0.5 truncate max-w-full px-1 ${active ? 'text-white' : 'text-slate-400'}`}>
-                {item.label}
-              </span>
-            </button>
-          );
-        })}
-      </nav>
-    </div>
+    <nav
+      className="fixed bottom-0 left-0 right-0 z-40 flex items-stretch justify-around w-full h-16 bg-white border-t border-slate-200"
+      style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+    >
+      {navItems.map((item) => {
+        const active = isActive(item.path);
+        return (
+          <button
+            key={item.path}
+            onClick={() => navigate(item.path)}
+            className="relative flex flex-col items-center justify-center flex-1 min-w-0 transition-colors duration-200 focus:outline-none"
+            aria-label={item.label}
+            aria-current={active ? 'page' : undefined}
+          >
+            {/* Aktif göstergesi: üstte ince çizgi */}
+            <span
+              className={`absolute top-0 left-1/2 -translate-x-1/2 h-[3px] rounded-b-full bg-[#1273a8] transition-all duration-300 ${
+                active ? 'w-10 opacity-100' : 'w-0 opacity-0'
+              }`}
+            />
+            <span className={`transition-colors duration-200 ${active ? 'text-[#1273a8]' : 'text-slate-400'}`}>
+              {item.icon}
+            </span>
+            <span className={`text-[10px] font-semibold mt-0.5 truncate max-w-full px-1 transition-colors duration-200 ${active ? 'text-[#1273a8]' : 'text-slate-400'}`}>
+              {item.label}
+            </span>
+          </button>
+        );
+      })}
+    </nav>
   );
 }
 
