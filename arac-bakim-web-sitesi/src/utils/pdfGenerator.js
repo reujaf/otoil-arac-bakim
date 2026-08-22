@@ -60,6 +60,15 @@ export const generateHizmetFormuPDF = async (hizmet, logoSrc) => {
 
     const hasKontrolData = hizmet.kontrolListesi && Object.keys(hizmet.kontrolListesi).length > 0;
 
+    // Usta görüşü metni (kontrol verisi yoksa 1. sayfada gösterilir)
+    const ustaNotuMetniGenel = (hizmet.ustaNotu || hizmet.ustaGorusu || '').trim();
+    const ustaGorusuSayfa1Html = (!hasKontrolData && ustaNotuMetniGenel) ? `
+            <tr style="background-color:#ffffff;">
+              <td style="padding:7px 10px; font-weight:600; color:#428bca; border-bottom:1px solid #e5e7eb;">Usta Görüşü & Özel Notlar</td>
+              <td style="padding:7px 10px; border-bottom:1px solid #e5e7eb; line-height:1.4;">${ustaNotuMetniGenel.replace(/\n/g, '<br>')}</td>
+            </tr>
+    ` : '';
+
     const sorumlulukReddiHtml = `
       <div style="font-size:6.5pt; color:#64748b; margin-top:4px; line-height:1.3;">
         <strong>SORUMLULUK REDDİ:</strong> Bu belgede yer alan sonuçlar usta görüşü olup, anlık olarak yapılan kontrol sonuçlarıdır. OTOIL Yağ ve Bakım Merkezi bilgi verilen sorunlardan sorumlu değildir.
@@ -119,6 +128,7 @@ export const generateHizmetFormuPDF = async (hizmet, logoSrc) => {
               <td style="padding:7px 10px; border-bottom:1px solid #e5e7eb; line-height:1.4;">${hizmet.fullCheckupSonucu.replace(/\n/g, '<br>')}</td>
             </tr>
             ` : ''}
+            ${ustaGorusuSayfa1Html}
           </tbody>
         </table>
 
