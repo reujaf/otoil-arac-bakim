@@ -104,3 +104,29 @@ body {
 .glass-btn-white:hover {
   background: #f1f5f9;
 }
+
+/* Üstten yumuşak beyaz-mavi geçiş efekti (fade scrim gradient) */
+.header-fade-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 10rem;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.95) 0%,
+    rgba(255, 255, 255, 0.82) 18%,
+    rgba(255, 255, 255, 0.54) 38%,
+    rgba(255, 255, 255, 0.28) 58%,
+    rgba(255, 255, 255, 0.11) 76%,
+    rgba(255, 255, 255, 0.03) 90%,
+    transparent 100%
+  );
+  pointer-events: none;
+}
+
+@media (min-width: 640px) {
+  .header-fade-overlay {
+    height: 11.5rem;
+  }
+}

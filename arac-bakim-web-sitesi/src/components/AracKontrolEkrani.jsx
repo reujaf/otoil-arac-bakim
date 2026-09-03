@@ -1,4 +1,5 @@
 import { KONTROL_KATEGORILERI, getDefaultKontrolListesi } from '../data/kontrolData';
+import VoiceInputButton from './VoiceInputButton';
 
 function AracKontrolEkrani({ kontrolListesi = {}, onChange, readOnly = false, ustaNotu = '', onUstaNotuChange }) {
 
@@ -239,6 +240,13 @@ function AracKontrolEkrani({ kontrolListesi = {}, onChange, readOnly = false, us
           >
             USTA GÖRÜŞÜ & ÖZEL NOTLAR
           </h3>
+          {!readOnly && (
+            <VoiceInputButton
+              value={ustaNotu || ''}
+              onChange={(val) => onUstaNotuChange && onUstaNotuChange(val)}
+              variant="dark"
+            />
+          )}
         </div>
         <div className="p-4">
           <textarea

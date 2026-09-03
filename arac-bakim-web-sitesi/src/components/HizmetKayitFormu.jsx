@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { auth, db } from '../firebaseConfig';
 import { collection, addDoc, Timestamp } from 'firebase/firestore';
 import AracKontrolEkrani from './AracKontrolEkrani';
+import VoiceInputButton from './VoiceInputButton';
 
 function HizmetKayitFormu() {
   const [activeTab, setActiveTab] = useState('genel'); // 'genel' | 'kontrol'
@@ -186,17 +187,35 @@ function HizmetKayitFormu() {
               </div>
 
               <div>
-                <label htmlFor="yapilanIslemler" className="block text-slate-700 text-xs font-bold mb-1.5">Yapılan İşlemler *</label>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label htmlFor="yapilanIslemler" className="block text-slate-700 text-xs font-bold">Yapılan İşlemler *</label>
+                  <VoiceInputButton
+                    value={formData.yapilanIslemler}
+                    onChange={(val) => setFormData(prev => ({ ...prev, yapilanIslemler: val }))}
+                  />
+                </div>
                 <textarea id="yapilanIslemler" name="yapilanIslemler" value={formData.yapilanIslemler} onChange={handleChange} required rows="3" className={`${inputCls} resize-none`} placeholder="Yapılan işlemleri detaylı olarak yazın..." />
               </div>
 
               <div>
-                <label htmlFor="fullCheckupSonucu" className="block text-slate-700 text-xs font-bold mb-1.5">Full Check-up Sonucu / Genel Notlar</label>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label htmlFor="fullCheckupSonucu" className="block text-slate-700 text-xs font-bold">Full Check-up Sonucu / Genel Notlar</label>
+                  <VoiceInputButton
+                    value={formData.fullCheckupSonucu}
+                    onChange={(val) => setFormData(prev => ({ ...prev, fullCheckupSonucu: val }))}
+                  />
+                </div>
                 <textarea id="fullCheckupSonucu" name="fullCheckupSonucu" value={formData.fullCheckupSonucu} onChange={handleChange} rows="3" className={`${inputCls} resize-none`} placeholder="Full check-up sonuçları ve genel notlarınız..." />
               </div>
 
               <div>
-                <label htmlFor="ustaNotu" className="block text-slate-700 text-xs font-bold mb-1.5">Usta Görüşü & Özel Notlar (PDF Rapor 2. Sayfada Görünür)</label>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label htmlFor="ustaNotu" className="block text-slate-700 text-xs font-bold">Usta Görüşü & Özel Notlar (PDF Rapor 2. Sayfada Görünür)</label>
+                  <VoiceInputButton
+                    value={formData.ustaNotu}
+                    onChange={(val) => setFormData(prev => ({ ...prev, ustaNotu: val }))}
+                  />
+                </div>
                 <textarea id="ustaNotu" name="ustaNotu" value={formData.ustaNotu} onChange={handleChange} rows="3" className={`${inputCls} resize-none`} placeholder="PDF raporundaki usta görüşü ve özel notlar alanında görünecek metni yazın..." />
               </div>
             </div>

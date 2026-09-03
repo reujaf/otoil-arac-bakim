@@ -25,8 +25,8 @@ function KayitEkle() {
     <div className="min-h-screen bg-[#f4f7fb] pb-28">
       {/* HERO HEADER */}
       <header className="relative overflow-hidden rounded-b-2xl bg-gradient-to-br from-[#0c4a6e] via-[#1273a8] to-[#26a9e0] px-5 pt-6 pb-10">
-        {/* Üstten aşağı beyaz geçiş (logo bölgesi için) */}
-        <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-white via-white/85 to-transparent pointer-events-none" />
+        {/* Üstten aşağı yumuşak beyaz geçiş (fade) */}
+        <div className="header-fade-overlay" />
         {/* dekoratif şekiller */}
         <div className="absolute -top-16 -right-16 w-56 h-56 rounded-full bg-white/10" />
         <div className="absolute top-20 -left-20 w-48 h-48 rounded-full bg-cyan-300/10" />

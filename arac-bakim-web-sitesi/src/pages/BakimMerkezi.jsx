@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
 import logo from '../assets/otoil-logo.png';
 import { generateHizmetFormuPDF } from '../utils/pdfGenerator';
+import VoiceInputButton from '../components/VoiceInputButton';
 
 function BakimMerkezi() {
   const [bildirimler, setBildirimler] = useState([]);
@@ -379,8 +380,8 @@ function BakimMerkezi() {
         <div className="min-h-screen bg-[#f4f7fb] pb-28">
       {/* HERO HEADER */}
       <header className="relative overflow-hidden rounded-b-2xl bg-gradient-to-br from-[#0c4a6e] via-[#1273a8] to-[#26a9e0] px-5 pt-6 pb-10">
-        {/* Üstten aşağı beyaz geçiş (logo bölgesi için) */}
-        <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-white via-white/85 to-transparent pointer-events-none" />
+        {/* Üstten aşağı yumuşak beyaz geçiş (fade) */}
+        <div className="header-fade-overlay" />
         {/* dekoratif şekiller */}
         <div className="absolute -top-16 -right-16 w-56 h-56 rounded-full bg-white/10" />
         <div className="absolute top-20 -left-20 w-48 h-48 rounded-full bg-cyan-300/10" />
@@ -661,15 +662,33 @@ function BakimMerkezi() {
                     <input type="text" id="edit-alınanUcret" name="alınanUcret" value={editFormData.alınanUcret || ''} onChange={handleEditChange} inputMode="numeric" pattern="[0-9.,]*" required className="glass-input w-full py-2.5 px-4 rounded-md text-sm text-slate-700 placeholder-slate-400 focus:outline-none" placeholder="0,00" />
                   </div>
                   <div>
-                    <label htmlFor="edit-yapilanIslemler" className="block text-slate-600 text-xs font-semibold mb-1.5">Yapılan İşlemler *</label>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label htmlFor="edit-yapilanIslemler" className="block text-slate-600 text-xs font-semibold">Yapılan İşlemler *</label>
+                      <VoiceInputButton
+                        value={editFormData.yapilanIslemler || ''}
+                        onChange={(val) => setEditFormData(prev => ({ ...prev, yapilanIslemler: val }))}
+                      />
+                    </div>
                     <textarea id="edit-yapilanIslemler" name="yapilanIslemler" value={editFormData.yapilanIslemler || ''} onChange={handleEditChange} required rows="3" className="glass-input w-full py-2.5 px-4 rounded-md text-sm text-slate-700 placeholder-slate-400 focus:outline-none resize-none" placeholder="Yapılan işlemleri detaylı olarak yazın..." />
                   </div>
                   <div>
-                    <label htmlFor="edit-fullCheckupSonucu" className="block text-slate-600 text-xs font-semibold mb-1.5">Full Check-up Sonucu</label>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label htmlFor="edit-fullCheckupSonucu" className="block text-slate-600 text-xs font-semibold">Full Check-up Sonucu</label>
+                      <VoiceInputButton
+                        value={editFormData.fullCheckupSonucu || ''}
+                        onChange={(val) => setEditFormData(prev => ({ ...prev, fullCheckupSonucu: val }))}
+                      />
+                    </div>
                     <textarea id="edit-fullCheckupSonucu" name="fullCheckupSonucu" value={editFormData.fullCheckupSonucu || ''} onChange={handleEditChange} rows="3" className="glass-input w-full py-2.5 px-4 rounded-md text-sm text-slate-700 placeholder-slate-400 focus:outline-none resize-none" placeholder="Full check-up sonuçları..." />
                   </div>
                   <div>
-                    <label htmlFor="edit-ustaNotu" className="block text-slate-600 text-xs font-semibold mb-1.5">Usta Görüşü & Özel Notlar (PDF 2. Sayfada Görünür)</label>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label htmlFor="edit-ustaNotu" className="block text-slate-600 text-xs font-semibold">Usta Görüşü & Özel Notlar (PDF 2. Sayfada Görünür)</label>
+                      <VoiceInputButton
+                        value={editFormData.ustaNotu || ''}
+                        onChange={(val) => setEditFormData(prev => ({ ...prev, ustaNotu: val }))}
+                      />
+                    </div>
                     <textarea id="edit-ustaNotu" name="ustaNotu" value={editFormData.ustaNotu || ''} onChange={handleEditChange} rows="3" className="glass-input w-full py-2.5 px-4 rounded-md text-sm text-slate-700 placeholder-slate-400 focus:outline-none resize-none" placeholder="Usta görüşü ve özel notlar..." />
                   </div>
                   <div className="flex justify-end gap-2.5 pt-4">
