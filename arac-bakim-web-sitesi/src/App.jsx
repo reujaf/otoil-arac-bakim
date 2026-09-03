@@ -6,6 +6,7 @@ import LoginPage from './pages/LoginPage';
 import Dashboard from './pages/Dashboard';
 import KayitEkle from './pages/KayitEkle';
 import BakimMerkezi from './pages/BakimMerkezi';
+import Analiz from './pages/Analiz';
 import ProtectedRoute from './components/ProtectedRoute';
 import ErrorBoundary from './components/ErrorBoundary';
 import PageTransition from './components/PageTransition';
@@ -84,6 +85,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <BakimMerkezi />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/analiz"
+            element={
+              <ProtectedRoute>
+                <Analiz />
               </ProtectedRoute>
             }
           />

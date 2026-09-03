@@ -6,6 +6,18 @@ export default {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: [
+          '-apple-system',
+          'BlinkMacSystemFont',
+          '"SF Pro Display"',
+          '"SF Pro Text"',
+          '"SF Pro"',
+          '"San Francisco"',
+          'system-ui',
+          'sans-serif',
+        ],
+      },
       animation: {
         'fade-in': 'fadeIn 0.3s ease-in-out',
         'slide-down': 'slideDown 0.3s ease-out',

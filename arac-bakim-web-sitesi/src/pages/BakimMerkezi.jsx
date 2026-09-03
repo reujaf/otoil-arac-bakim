@@ -17,6 +17,7 @@ function BakimMerkezi() {
   const [editingHizmet, setEditingHizmet] = useState(null);
   const [editFormData, setEditFormData] = useState({});
   const [isUpdating, setIsUpdating] = useState(false);
+  const [menuAcik, setMenuAcik] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -389,15 +390,32 @@ function BakimMerkezi() {
         <div className="relative z-10 max-w-5xl mx-auto">
           <div className="flex items-center justify-between mb-5">
             <img src={logo} alt="OTOIL" className="h-9 w-auto cursor-pointer" onClick={() => navigate('/')} />
-            <button
-              onClick={handleLogout}
-              title="Hesap değiştir"
-              className="relative z-10 flex items-center justify-center w-9 h-9 rounded-full bg-white/70 hover:bg-white text-[#0c4a6e] transition-all active:scale-95"
-            >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-            </button>
+            <div className="relative z-10 flex items-center gap-2">
+              <div
+                className={`overflow-hidden transition-all duration-300 ease-out ${
+                  menuAcik ? 'max-w-40 opacity-100 translate-x-0' : 'max-w-0 opacity-0 translate-x-4'
+                }`}
+              >
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-1.5 bg-white text-[#0c4a6e] px-3.5 py-2 rounded-md text-xs font-semibold shadow-sm hover:bg-sky-50 transition-colors active:scale-95 whitespace-nowrap"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
+                  Hesap Değiştir
+                </button>
+              </div>
+              <button
+                onClick={() => setMenuAcik((v) => !v)}
+                title="Hesap"
+                className={`flex items-center justify-center w-9 h-9 shrink-0 rounded-full bg-white/70 hover:bg-white text-[#0c4a6e] transition-all active:scale-95 ${menuAcik ? 'ring-2 ring-white' : ''}`}
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+              </button>
+            </div>
           </div>
 
           <p className="text-white/70 text-sm font-medium">Tüm Kayıtlar</p>
