@@ -42,18 +42,28 @@ function HizmetListesi() {
 
   const formatDate = (timestamp) => {
     if (!timestamp) return '-';
-    const date = timestamp.toDate();
-    return date.toLocaleDateString('tr-TR', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
+    try {
+      const date = typeof timestamp.toDate === 'function' ? timestamp.toDate() : new Date(timestamp);
+      if (!date || isNaN(date.getTime())) return '-';
+      return date.toLocaleDateString('tr-TR', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      });
+    } catch {
+      return '-';
+    }
   };
 
   const formatDateShort = (timestamp) => {
     if (!timestamp) return '-';
-    const date = timestamp.toDate();
-    return date.toLocaleDateString('tr-TR');
+    try {
+      const date = typeof timestamp.toDate === 'function' ? timestamp.toDate() : new Date(timestamp);
+      if (!date || isNaN(date.getTime())) return '-';
+      return date.toLocaleDateString('tr-TR');
+    } catch {
+      return '-';
+    }
   };
 
   // Müşteri adını al (eski ve yeni format desteği)

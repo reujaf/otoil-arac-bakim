@@ -15,6 +15,16 @@ function getTodayKey() {
   return new Date().toISOString().slice(0, 10); // YYYY-MM-DD
 }
 
+function toSafeDate(hizmetTarihi) {
+  if (!hizmetTarihi) return null;
+  try {
+    const d = typeof hizmetTarihi.toDate === 'function' ? hizmetTarihi.toDate() : new Date(hizmetTarihi);
+    return (!d || isNaN(d.getTime())) ? null : d;
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Sayıyı 0'dan hedef değere hızlıca animasyonlu şekilde sayar.
  */
@@ -115,13 +125,13 @@ function Dashboard() {
 
       setBugunCiro(
         hizmetListesi
-          .filter((h) => { if (!h.hizmetTarihi) return false; const d = h.hizmetTarihi.toDate(); return d >= bugun && d <= bugunSonu; })
+          .filter((h) => { const d = toSafeDate(h.hizmetTarihi); return d ? d >= bugun && d <= bugunSonu : false; })
           .reduce((t, h) => t + (h.alınanUcret || 0), 0)
       );
 
       setAylikCiro(
         hizmetListesi
-          .filter((h) => { if (!h.hizmetTarihi) return false; const d = h.hizmetTarihi.toDate(); return d >= ayBasi && d <= aySonu; })
+          .filter((h) => { const d = toSafeDate(h.hizmetTarihi); return d ? d >= ayBasi && d <= aySonu : false; })
           .reduce((t, h) => t + (h.alınanUcret || 0), 0)
       );
 
@@ -134,7 +144,7 @@ function Dashboard() {
         const gs = new Date(tarih); gs.setHours(0, 0, 0, 0);
         const ge = new Date(tarih); ge.setHours(23, 59, 59, 999);
         const ciro = hizmetListesi
-          .filter((h) => { if (!h.hizmetTarihi) return false; const d = h.hizmetTarihi.toDate(); return d >= gs && d <= ge; })
+          .filter((h) => { const d = toSafeDate(h.hizmetTarihi); return d ? d >= gs && d <= ge : false; })
           .reduce((t, h) => t + (h.alınanUcret || 0), 0);
         veriler.push({
           gun: tarih.toLocaleDateString('tr-TR', { weekday: 'short' }),
@@ -186,7 +196,8 @@ function Dashboard() {
     const sonKayitlar = hizmetlerListesi
       .slice(0, 30)
       .map((h) => {
-        const tarih = h.hizmetTarihi ? h.hizmetTarihi.toDate().toLocaleDateString('tr-TR') : '-';
+        const d = toSafeDate(h.hizmetTarihi);
+        const tarih = d ? d.toLocaleDateString('tr-TR') : '-';
         const ucret = (h.alınanUcret != null) ? fmt(h.alınanUcret) + ' ₺' : '-';
         const islem = (h.yapilanIslemler || '').slice(0, 80);
         return `- ${h.plaka || '-'} | ${getMusteriAdi(h)} | ${tarih} | ${ucret} | ${islem}${islem.length >= 80 ? '...' : ''}`;
@@ -249,8 +260,8 @@ ${sonKayitlar || '(Henüz kayıt yok)'}
   const bugunStr = now.toLocaleDateString('tr-TR', { weekday: 'long', day: 'numeric', month: 'long' });
   const haftalikToplam = gunlukCiroVerileri.reduce((t, g) => t + g.ciro, 0);
   const hizmetSayisiBugun = hizmetlerListesi.filter((h) => {
-    if (!h.hizmetTarihi) return false;
-    const d = h.hizmetTarihi.toDate();
+    const d = toSafeDate(h.hizmetTarihi);
+    if (!d) return false;
     const b = new Date(); b.setHours(0, 0, 0, 0);
     return d >= b;
   }).length;

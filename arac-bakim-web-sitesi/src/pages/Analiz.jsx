@@ -93,6 +93,7 @@ function Analiz() {
     return hizmetler.filter((item) => {
       if (!item.hizmetTarihi) return false;
       const date = item.hizmetTarihi.toDate ? item.hizmetTarihi.toDate() : new Date(item.hizmetTarihi);
+      if (!date || isNaN(date.getTime())) return false;
 
       if (timeRange === 'hafta') {
         const d = new Date(now);
@@ -170,6 +171,7 @@ function Analiz() {
     hizmetler.forEach((h) => {
       if (!h.hizmetTarihi) return;
       const date = h.hizmetTarihi.toDate ? h.hizmetTarihi.toDate() : new Date(h.hizmetTarihi);
+      if (!date || isNaN(date.getTime())) return;
       const ucret = Number(h.alınanUcret) || 0;
 
       // Bu Ay
@@ -238,6 +240,7 @@ function Analiz() {
     filteredHizmetler.forEach((h) => {
       if (!h.hizmetTarihi) return;
       const date = h.hizmetTarihi.toDate ? h.hizmetTarihi.toDate() : new Date(h.hizmetTarihi);
+      if (!date || isNaN(date.getTime())) return;
       let key = '';
       if (timeRange === 'hafta' || timeRange === 'ay') {
         key = `${date.getDate()} ${date.toLocaleString('tr-TR', { month: 'short' })}`;
@@ -264,6 +267,7 @@ function Analiz() {
     filteredHizmetler.forEach((h) => {
       if (!h.hizmetTarihi) return;
       const date = h.hizmetTarihi.toDate ? h.hizmetTarihi.toDate() : new Date(h.hizmetTarihi);
+      if (!date || isNaN(date.getTime())) return;
       counts[date.getDay()] += 1;
     });
     return [

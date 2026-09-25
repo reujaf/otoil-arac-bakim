@@ -4,6 +4,14 @@ import { collection, addDoc, Timestamp } from 'firebase/firestore';
 import AracKontrolEkrani from './AracKontrolEkrani';
 import VoiceInputButton from './VoiceInputButton';
 
+const getTodayDateString = () => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 function HizmetKayitFormu() {
   const [activeTab, setActiveTab] = useState('genel'); // 'genel' | 'kontrol'
   const [formData, setFormData] = useState({
@@ -11,7 +19,7 @@ function HizmetKayitFormu() {
     telefon: '',
     plaka: '',
     aracModeli: '',
-    hizmetTarihi: '',
+    hizmetTarihi: getTodayDateString(),
     yapilanIslemler: '',
     fullCheckupSonucu: '',
     ustaNotu: '',
@@ -57,12 +65,67 @@ function HizmetKayitFormu() {
     try {
       const user = auth.currentUser;
       if (!user) { alert('Lütfen giriş yapın'); return; }
+
+      // Zorunlu Alan Doğrulamaları (Kullanıcı ister Genel ister Kontrol sekmesinde olsun)
+      if (!formData.adSoyad || !formData.adSoyad.trim()) {
+        setActiveTab('genel');
+        alert('Lütfen Genel Hizmet Bilgileri alanındaki "Ad Soyad" alanını doldurun.');
+        return;
+      }
+      if (!formData.plaka || !formData.plaka.trim()) {
+        setActiveTab('genel');
+        alert('Lütfen Genel Hizmet Bilgileri alanındaki "Plaka" alanını doldurun.');
+        return;
+      }
+      if (!formData.aracModeli || !formData.aracModeli.trim()) {
+        setActiveTab('genel');
+        alert('Lütfen Genel Hizmet Bilgileri alanındaki "Araç Modeli" alanını doldurun.');
+        return;
+      }
+      if (!formData.hizmetTarihi) {
+        setActiveTab('genel');
+        alert('Lütfen Genel Hizmet Bilgileri alanındaki "Hizmet Tarihi" alanını seçin.');
+        return;
+      }
+      if (!formData.alınanUcret || !formData.alınanUcret.toString().trim()) {
+        setActiveTab('genel');
+        alert('Lütfen Genel Hizmet Bilgileri alanındaki "Alınan Ücret" alanını doldurun.');
+        return;
+      }
+      if (!formData.yapilanIslemler || !formData.yapilanIslemler.trim()) {
+        setActiveTab('genel');
+        alert('Lütfen Genel Hizmet Bilgileri alanındaki "Yapılan İşlemler" alanını doldurun.');
+        return;
+      }
+
       setLoading(true);
       setSuccessMessage('');
 
-      const hizmetTarihiObj = new Date(formData.hizmetTarihi);
+      // Tarih nesnesini güvenli şekilde oluştur (YYYY-MM-DD formatından saat dilimi sapması olmadan)
+      let hizmetTarihiObj;
+      if (formData.hizmetTarihi) {
+        const parts = formData.hizmetTarihi.split('-');
+        if (parts.length === 3) {
+          const year = parseInt(parts[0], 10);
+          const month = parseInt(parts[1], 10) - 1;
+          const day = parseInt(parts[2], 10);
+          hizmetTarihiObj = new Date(year, month, day, 12, 0, 0);
+        } else {
+          hizmetTarihiObj = new Date(formData.hizmetTarihi);
+        }
+      }
+
+      if (!hizmetTarihiObj || isNaN(hizmetTarihiObj.getTime())) {
+        hizmetTarihiObj = new Date();
+      }
+
       const sonrakiBakimTarihi = new Date(hizmetTarihiObj);
       sonrakiBakimTarihi.setMonth(sonrakiBakimTarihi.getMonth() + 6);
+      if (isNaN(sonrakiBakimTarihi.getTime())) {
+        sonrakiBakimTarihi = new Date();
+        sonrakiBakimTarihi.setMonth(sonrakiBakimTarihi.getMonth() + 6);
+      }
+
       const ucretDegeri = formData.alınanUcret.toString().replace(/\./g, '').replace(',', '.');
       const ucret = parseFloat(ucretDegeri) || 0;
 
@@ -85,7 +148,17 @@ function HizmetKayitFormu() {
 
       await addDoc(collection(db, 'hizmetler'), hizmetData);
 
-      setFormData({ adSoyad: '', telefon: '', plaka: '', aracModeli: '', hizmetTarihi: '', yapilanIslemler: '', fullCheckupSonucu: '', ustaNotu: '', alınanUcret: '' });
+      setFormData({
+        adSoyad: '',
+        telefon: '',
+        plaka: '',
+        aracModeli: '',
+        hizmetTarihi: getTodayDateString(),
+        yapilanIslemler: '',
+        fullCheckupSonucu: '',
+        ustaNotu: '',
+        alınanUcret: ''
+      });
       setKontrolListesi({});
       setActiveTab('genel');
       setSuccessMessage('Hizmet kaydı başarıyla oluşturuldu!');

@@ -111,18 +111,42 @@ function BakimMerkezi() {
 
   const formatDate = (timestamp) => {
     if (!timestamp) return '-';
-    const date = timestamp.toDate();
-    return date.toLocaleDateString('tr-TR', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
+    try {
+      const date = typeof timestamp.toDate === 'function' ? timestamp.toDate() : new Date(timestamp);
+      if (!date || isNaN(date.getTime())) return '-';
+      return date.toLocaleDateString('tr-TR', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      });
+    } catch {
+      return '-';
+    }
   };
 
   const formatDateShort = (timestamp) => {
     if (!timestamp) return '-';
-    const date = timestamp.toDate();
-    return date.toLocaleDateString('tr-TR');
+    try {
+      const date = typeof timestamp.toDate === 'function' ? timestamp.toDate() : new Date(timestamp);
+      if (!date || isNaN(date.getTime())) return '-';
+      return date.toLocaleDateString('tr-TR');
+    } catch {
+      return '-';
+    }
+  };
+
+  const safeDateToInputString = (timestamp) => {
+    if (!timestamp) return '';
+    try {
+      const d = typeof timestamp.toDate === 'function' ? timestamp.toDate() : new Date(timestamp);
+      if (!d || isNaN(d.getTime())) return '';
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    } catch {
+      return '';
+    }
   };
 
   // Fiyatı Türk formatında formatla
@@ -217,8 +241,8 @@ function BakimMerkezi() {
   // Düzenleme modunu aç
   const handleEdit = (hizmet) => {
     // Tarihleri formatla (YYYY-MM-DD)
-    const hizmetTarihi = hizmet.hizmetTarihi ? hizmet.hizmetTarihi.toDate().toISOString().split('T')[0] : '';
-    const sonrakiBakimTarihi = hizmet.sonrakiBakimTarihi ? hizmet.sonrakiBakimTarihi.toDate().toISOString().split('T')[0] : '';
+    const hizmetTarihi = safeDateToInputString(hizmet.hizmetTarihi);
+    const sonrakiBakimTarihi = safeDateToInputString(hizmet.sonrakiBakimTarihi);
     
     // Fiyatı formatla (Türk formatına çevir: 1500.00 -> 1.500,00)
     let fiyat = '';
@@ -270,10 +294,31 @@ function BakimMerkezi() {
       setIsUpdating(true);
 
       // Tarihleri Timestamp'e çevir
-      const hizmetTarihiObj = new Date(editFormData.hizmetTarihi);
-      const sonrakiBakimTarihiObj = editFormData.sonrakiBakimTarihi 
-        ? new Date(editFormData.sonrakiBakimTarihi)
-        : null;
+      let hizmetTarihiObj;
+      if (editFormData.hizmetTarihi) {
+        const parts = editFormData.hizmetTarihi.split('-');
+        if (parts.length === 3) {
+          hizmetTarihiObj = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10), 12, 0, 0);
+        } else {
+          hizmetTarihiObj = new Date(editFormData.hizmetTarihi);
+        }
+      }
+      if (!hizmetTarihiObj || isNaN(hizmetTarihiObj.getTime())) {
+        hizmetTarihiObj = new Date();
+      }
+
+      let sonrakiBakimTarihiObj = null;
+      if (editFormData.sonrakiBakimTarihi) {
+        const parts = editFormData.sonrakiBakimTarihi.split('-');
+        if (parts.length === 3) {
+          sonrakiBakimTarihiObj = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10), 12, 0, 0);
+        } else {
+          sonrakiBakimTarihiObj = new Date(editFormData.sonrakiBakimTarihi);
+        }
+        if (isNaN(sonrakiBakimTarihiObj.getTime())) {
+          sonrakiBakimTarihiObj = null;
+        }
+      }
 
       // Fiyat değerini temizle ve parse et
       const ucretDegeri = editFormData.alınanUcret.toString().replace(/\./g, '').replace(',', '.');
