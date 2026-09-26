@@ -119,7 +119,7 @@ function HizmetKayitFormu() {
         hizmetTarihiObj = new Date();
       }
 
-      const sonrakiBakimTarihi = new Date(hizmetTarihiObj);
+      let sonrakiBakimTarihi = new Date(hizmetTarihiObj);
       sonrakiBakimTarihi.setMonth(sonrakiBakimTarihi.getMonth() + 6);
       if (isNaN(sonrakiBakimTarihi.getTime())) {
         sonrakiBakimTarihi = new Date();
