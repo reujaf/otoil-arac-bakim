@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { collection, query, onSnapshot } from 'firebase/firestore';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import logo from '../assets/otoil-logo.png';
+import { DashboardSkeleton } from '../components/SkeletonLoader';
 
 const OTOILAI_WORKER_URL = import.meta.env.VITE_OTOILAI_WORKER_URL || 'https://otoil-gemini.burakksipahi.workers.dev';
 const OTOILAI_CACHE_KEY_DATE = 'otoil_ai_last_fetch_date';
@@ -74,6 +75,7 @@ function Dashboard() {
   const [tumZamanlarCiro, setTumZamanlarCiro] = useState(0);
   const [gunlukCiroVerileri, setGunlukCiroVerileri] = useState([]);
   const [hizmetlerListesi, setHizmetlerListesi] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const [otoilAiLoading, setOtoilAiLoading] = useState(false);
   const [otoilAiText, setOtoilAiText] = useState('');
@@ -153,7 +155,11 @@ function Dashboard() {
         });
       }
       setGunlukCiroVerileri(veriler);
-    }, (error) => console.error('Veri çekme hatası:', error));
+      setLoading(false);
+    }, (error) => {
+      console.error('Veri çekme hatası:', error);
+      setLoading(false);
+    });
 
     return () => unsubscribe();
   }, []);
@@ -265,6 +271,10 @@ ${sonKayitlar || '(Henüz kayıt yok)'}
     const b = new Date(); b.setHours(0, 0, 0, 0);
     return d >= b;
   }).length;
+
+  if (loading) {
+    return <DashboardSkeleton />;
+  }
 
   return (
     <div className="min-h-screen bg-[#f4f7fb] pb-28">
@@ -381,7 +391,17 @@ ${sonKayitlar || '(Henüz kayıt yok)'}
               </AreaChart>
             </ResponsiveContainer>
           ) : (
-            <div className="h-[190px] flex items-center justify-center text-slate-400 text-sm animate-pulse">Veri yükleniyor...</div>
+            <div className="h-[190px] flex items-end justify-between gap-3 pt-6 px-2">
+              {[40, 65, 30, 85, 55, 95, 70].map((h, i) => (
+                <div key={i} className="flex-1 flex flex-col items-center gap-2">
+                  <div
+                    className="w-full rounded-t-md animate-shimmer bg-slate-200/80"
+                    style={{ height: `${h}%` }}
+                  />
+                  <div className="h-2.5 w-6 rounded-md animate-shimmer bg-slate-200/80" />
+                </div>
+              ))}
+            </div>
           )}
         </div>
 

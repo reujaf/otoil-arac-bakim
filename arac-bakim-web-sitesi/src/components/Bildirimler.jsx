@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { db, auth } from '../firebaseConfig';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { BildirimlerSkeleton } from './SkeletonLoader';
 
 function Bildirimler({ onBildirimSayisiDegis, onBildirimTikla }) {
   const [bildirimler, setBildirimler] = useState([]);
@@ -154,11 +155,7 @@ function Bildirimler({ onBildirimSayisiDegis, onBildirimTikla }) {
   };
 
   if (loading) {
-    return (
-      <div className="text-center py-8">
-        <p className="text-gray-600">Yükleniyor...</p>
-      </div>
-    );
+    return <BildirimlerSkeleton />;
   }
 
   if (bildirimler.length === 0) {

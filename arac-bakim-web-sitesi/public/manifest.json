@@ -3,10 +3,13 @@
   "short_name": "OTOIL",
   "description": "Müşteri bakımlarınızı kolayca yönetin, takip edin ve raporlayın",
   "start_url": "./",
+  "scope": "./",
   "display": "standalone",
-  "background_color": "#26a9e0",
-  "theme_color": "#26a9e0",
+  "background_color": "#f4f7fb",
+  "theme_color": "#0c4a6e",
   "orientation": "portrait-primary",
+  "lang": "tr",
+  "categories": ["business", "productivity", "utilities"],
   "icons": [
     {
       "src": "./icon-192.png",
@@ -20,6 +23,28 @@
       "type": "image/png",
       "purpose": "any maskable"
     }
+  ],
+  "shortcuts": [
+    {
+      "name": "Yeni Bakım Kaydı",
+      "short_name": "Yeni Kayıt",
+      "description": "Yeni araç servis ve bakım formu aç",
+      "url": "./kayit-ekle",
+      "icons": [{ "src": "./icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Bakım Merkezi",
+      "short_name": "Kayıtlar",
+      "description": "Kayıtlı tüm araç ve bakımları incele",
+      "url": "./bakim-merkezi",
+      "icons": [{ "src": "./icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Rapor & Analiz",
+      "short_name": "Analiz",
+      "description": "Ciro ve istatistik raporlarını görüntüle",
+      "url": "./analiz",
+      "icons": [{ "src": "./icon-192.png", "sizes": "192x192" }]
+    }
   ]
 }
-

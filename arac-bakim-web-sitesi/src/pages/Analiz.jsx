@@ -10,6 +10,7 @@ import {
   XAxis, YAxis, Tooltip, ResponsiveContainer, Legend
 } from 'recharts';
 import logo from '../assets/otoil-logo.png';
+import { AnalizSkeleton } from '../components/SkeletonLoader';
 
 // Renk Paleti (Kurumsal OTOIL Teması)
 const COLORS = ['#26a9e0', '#0c4a6e', '#1273a8', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#64748b'];
@@ -408,6 +409,10 @@ function Analiz() {
     link.click();
     document.body.removeChild(link);
   };
+
+  if (loading) {
+    return <AnalizSkeleton />;
+  }
 
   return (
     <div className="min-h-screen bg-[#f4f7fb] pb-28">

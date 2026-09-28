@@ -11,6 +11,8 @@ import ProtectedRoute from './components/ProtectedRoute';
 import ErrorBoundary from './components/ErrorBoundary';
 import PageTransition from './components/PageTransition';
 import BottomNavigation from './components/BottomNavigation';
+import { AppLoadingScreen } from './components/SkeletonLoader';
+import PWAInstallPrompt from './components/PWAInstallPrompt';
 import { useLocation } from 'react-router-dom';
 
 // Login sayfasında navigasyonu gizleyen sarmalayıcı
@@ -45,11 +47,7 @@ function App() {
   }, []);
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-lg">Yükleniyor...</div>
-      </div>
-    );
+    return <AppLoadingScreen />;
   }
 
   // GitHub Pages için base path
@@ -102,6 +100,8 @@ function App() {
         {user && (
           <RouteAwareBottomNav />
         )}
+        {/* PWA Kurulum / Ana Ekrana Ekleme Bildirimi */}
+        <PWAInstallPrompt />
       </Router>
     </ErrorBoundary>
   );

@@ -4,6 +4,7 @@ import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestor
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import logo from '../assets/otoil-logo.png';
 import { generateHizmetFormuPDF } from '../utils/pdfGenerator';
+import { Skeleton } from './SkeletonLoader';
 
 function HizmetListesi() {
   const [hizmetler, setHizmetler] = useState([]);
@@ -96,8 +97,17 @@ function HizmetListesi() {
 
   if (loading) {
     return (
-      <div className="text-center py-8">
-        <p className="text-gray-600">Yükleniyor...</p>
+      <div className="space-y-4 py-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="bg-white rounded-xl p-5 ring-1 ring-slate-200 space-y-3">
+            <div className="flex justify-between items-center">
+              <Skeleton className="h-6 w-24 rounded-md" />
+              <Skeleton className="h-4 w-32" />
+            </div>
+            <Skeleton className="h-4 w-48" />
+            <Skeleton className="h-3 w-full" />
+          </div>
+        ))}
       </div>
     );
   }

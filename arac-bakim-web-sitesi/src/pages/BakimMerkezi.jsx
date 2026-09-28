@@ -6,6 +6,7 @@ import { signOut } from 'firebase/auth';
 import logo from '../assets/otoil-logo.png';
 import { generateHizmetFormuPDF } from '../utils/pdfGenerator';
 import VoiceInputButton from '../components/VoiceInputButton';
+import { BakimMerkeziSkeleton } from '../components/SkeletonLoader';
 
 function BakimMerkezi() {
   const [bildirimler, setBildirimler] = useState([]);
@@ -413,13 +414,7 @@ function BakimMerkezi() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-[#f4f7fb] flex items-center justify-center">
-        <div className="bg-white rounded-lg px-8 py-4 ring-1 ring-slate-200">
-          <p className="text-slate-500 text-sm animate-pulse">Yükleniyor...</p>
-        </div>
-      </div>
-    );
+    return <BakimMerkeziSkeleton />;
   }
 
       return (
