@@ -19,7 +19,7 @@ export function Skeleton({ className = '', variant = 'light' }) {
  */
 export function SkeletonHeader({ titleWidth = 'w-48', subtitleWidth = 'w-28', children }) {
   return (
-    <header className="relative overflow-hidden rounded-b-2xl bg-gradient-to-br from-[#0c4a6e] via-[#1273a8] to-[#26a9e0] px-5 pt-6 pb-12">
+    <header className="relative overflow-hidden rounded-b-2xl bg-gradient-to-br from-[#0c4a6e] via-[#1273a8] to-[#26a9e0] px-5 header-safe-top pb-12">
       <div className="header-fade-overlay" />
       <div className="absolute -top-16 -right-16 w-56 h-56 rounded-full bg-white/10" />
       <div className="absolute top-20 -left-20 w-48 h-48 rounded-full bg-cyan-300/10" />
@@ -44,9 +44,9 @@ export function SkeletonHeader({ titleWidth = 'w-48', subtitleWidth = 'w-28', ch
  */
 export function BakimMerkeziSkeleton() {
   return (
-    <div className="min-h-screen bg-[#f4f7fb] pb-28">
+    <div className="min-h-screen bg-[#f4f7fb] page-safe-bottom">
       {/* Header */}
-      <header className="relative overflow-hidden rounded-b-2xl bg-gradient-to-br from-[#0c4a6e] via-[#1273a8] to-[#26a9e0] px-5 pt-6 pb-10">
+      <header className="relative overflow-hidden rounded-b-2xl bg-gradient-to-br from-[#0c4a6e] via-[#1273a8] to-[#26a9e0] px-5 header-safe-top pb-10">
         <div className="header-fade-overlay" />
         <div className="absolute -top-16 -right-16 w-56 h-56 rounded-full bg-white/10" />
         <div className="absolute top-20 -left-20 w-48 h-48 rounded-full bg-cyan-300/10" />
@@ -103,9 +103,9 @@ export function BakimMerkeziSkeleton() {
  */
 export function DashboardSkeleton() {
   return (
-    <div className="min-h-screen bg-[#f4f7fb] pb-28">
+    <div className="min-h-screen bg-[#f4f7fb] page-safe-bottom">
       {/* Header */}
-      <header className="relative overflow-hidden rounded-b-2xl bg-gradient-to-br from-[#0c4a6e] via-[#1273a8] to-[#26a9e0] px-5 pt-6 pb-16">
+      <header className="relative overflow-hidden rounded-b-2xl bg-gradient-to-br from-[#0c4a6e] via-[#1273a8] to-[#26a9e0] px-5 header-safe-top pb-16">
         <div className="header-fade-overlay" />
         <div className="absolute -top-16 -right-16 w-56 h-56 rounded-full bg-white/10" />
         <div className="absolute top-20 -left-20 w-48 h-48 rounded-full bg-cyan-300/10" />
@@ -192,9 +192,9 @@ export function DashboardSkeleton() {
  */
 export function AnalizSkeleton() {
   return (
-    <div className="min-h-screen bg-[#f4f7fb] pb-28">
+    <div className="min-h-screen bg-[#f4f7fb] page-safe-bottom">
       {/* Header */}
-      <header className="relative overflow-hidden rounded-b-2xl bg-gradient-to-br from-[#0c4a6e] via-[#1273a8] to-[#26a9e0] px-5 pt-6 pb-12">
+      <header className="relative overflow-hidden rounded-b-2xl bg-gradient-to-br from-[#0c4a6e] via-[#1273a8] to-[#26a9e0] px-5 header-safe-top pb-12">
         <div className="header-fade-overlay" />
         <div className="absolute -top-16 -right-16 w-56 h-56 rounded-full bg-white/10" />
         <div className="absolute top-20 -left-20 w-48 h-48 rounded-full bg-cyan-300/10" />

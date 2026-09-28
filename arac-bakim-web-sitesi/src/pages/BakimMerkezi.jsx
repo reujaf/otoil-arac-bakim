@@ -418,9 +418,9 @@ function BakimMerkezi() {
   }
 
       return (
-        <div className="min-h-screen bg-[#f4f7fb] pb-28">
+        <div className="min-h-screen bg-[#f4f7fb] page-safe-bottom">
       {/* HERO HEADER */}
-      <header className="relative overflow-hidden rounded-b-2xl bg-gradient-to-br from-[#0c4a6e] via-[#1273a8] to-[#26a9e0] px-5 pt-6 pb-10">
+      <header className="relative overflow-hidden rounded-b-2xl bg-gradient-to-br from-[#0c4a6e] via-[#1273a8] to-[#26a9e0] px-5 header-safe-top pb-10">
         {/* Üstten aşağı yumuşak beyaz geçiş (fade) */}
         <div className="header-fade-overlay" />
         {/* dekoratif şekiller */}

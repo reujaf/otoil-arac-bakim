@@ -171,3 +171,12 @@ body {
     height: 11.5rem;
   }
 }
+
+/* iOS PWA Safe Area Uyum Sınıfları */
+.header-safe-top {
+  padding-top: calc(1.5rem + env(safe-area-inset-top, 0px));
+}
+
+.page-safe-bottom {
+  padding-bottom: calc(7rem + env(safe-area-inset-bottom, 0px));
+}

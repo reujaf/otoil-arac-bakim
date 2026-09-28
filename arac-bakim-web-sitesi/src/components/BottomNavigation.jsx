@@ -50,34 +50,36 @@ function BottomNavigation() {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-40 flex items-stretch justify-around w-full h-16 bg-white border-t border-slate-200"
-      style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+      className="fixed bottom-0 left-0 right-0 z-40 w-full bg-white/95 backdrop-blur-xl border-t border-slate-200/90 shadow-[0_-4px_20px_rgba(0,0,0,0.05)]"
+      style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
     >
-      {navItems.map((item) => {
-        const active = isActive(item.path);
-        return (
-          <button
-            key={item.path}
-            onClick={() => navigate(item.path)}
-            className="relative flex flex-col items-center justify-center flex-1 min-w-0 transition-colors duration-200 focus:outline-none"
-            aria-label={item.label}
-            aria-current={active ? 'page' : undefined}
-          >
-            {/* Aktif göstergesi: üstte ince çizgi */}
-            <span
-              className={`absolute top-0 left-1/2 -translate-x-1/2 h-[3px] rounded-b-full bg-[#1273a8] transition-all duration-300 ${
-                active ? 'w-10 opacity-100' : 'w-0 opacity-0'
-              }`}
-            />
-            <span className={`transition-colors duration-200 ${active ? 'text-[#1273a8]' : 'text-slate-400'}`}>
-              {item.icon}
-            </span>
-            <span className={`text-[10px] font-semibold mt-0.5 truncate max-w-full px-1 transition-colors duration-200 ${active ? 'text-[#1273a8]' : 'text-slate-400'}`}>
-              {item.label}
-            </span>
-          </button>
-        );
-      })}
+      <div className="flex items-center justify-around w-full h-16 max-w-lg mx-auto px-2">
+        {navItems.map((item) => {
+          const active = isActive(item.path);
+          return (
+            <button
+              key={item.path}
+              onClick={() => navigate(item.path)}
+              className="relative flex flex-col items-center justify-center flex-1 h-full py-1 min-w-0 transition-all duration-200 focus:outline-none active:scale-95"
+              aria-label={item.label}
+              aria-current={active ? 'page' : undefined}
+            >
+              {/* Aktif göstergesi: üstte ince çizgi */}
+              <span
+                className={`absolute top-0 left-1/2 -translate-x-1/2 h-[3px] rounded-b-full bg-[#1273a8] transition-all duration-300 ${
+                  active ? 'w-10 opacity-100' : 'w-0 opacity-0'
+                }`}
+              />
+              <span className={`transition-colors duration-200 ${active ? 'text-[#1273a8]' : 'text-slate-400'}`}>
+                {item.icon}
+              </span>
+              <span className={`text-[10px] font-semibold mt-1 truncate max-w-full px-1 transition-colors duration-200 ${active ? 'text-[#1273a8]' : 'text-slate-400'}`}>
+                {item.label}
+              </span>
+            </button>
+          );
+        })}
+      </div>
     </nav>
   );
 }
