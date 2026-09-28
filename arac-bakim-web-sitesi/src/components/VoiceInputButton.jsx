@@ -31,19 +31,15 @@ function VoiceInputButton({
 }) {
   const [isListening, setIsListening] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
-  const [audioLevel, setAudioLevel] = useState(0); // 0 - 100
   const [liveTranscript, setLiveTranscript] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [showHelpModal, setShowHelpModal] = useState(false);
 
   const recognitionRef = useRef(null);
   const isListeningRef = useRef(false);
-  const audioStreamRef = useRef(null);
-  const audioContextRef = useRef(null);
-  const animationFrameRef = useRef(null);
 
   const baseTextRef = useRef(''); // Kayıt başladığındaki orijinal metin
-  const accumulatedFinalRef = useRef(''); // Bu kayıt oturumundaki kesinleşen cümleler
+  const accumulatedFinalRef = useRef(''); // Bu oturumdaki kesinleşen cümleler
   const currentTextRef = useRef(value);
   const onChangeRef = useRef(onChange);
   const restartTimerRef = useRef(null);
@@ -58,28 +54,7 @@ function VoiceInputButton({
     onChangeRef.current = onChange;
   }, [onChange]);
 
-  // Ses donanımını kapatma
-  const cleanupAudio = useCallback(() => {
-    if (animationFrameRef.current) {
-      cancelAnimationFrame(animationFrameRef.current);
-      animationFrameRef.current = null;
-    }
-    if (audioStreamRef.current) {
-      audioStreamRef.current.getTracks().forEach((track) => track.stop());
-      audioStreamRef.current = null;
-    }
-    if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
-      try {
-        audioContextRef.current.close();
-      } catch {
-        // ignore
-      }
-      audioContextRef.current = null;
-    }
-    setAudioLevel(0);
-  }, []);
-
-  // Dinlemeyi tamamen sonlandırma
+  // Dinlemeyi tamamen sonlandırma (Immediate Hard Stop / Abort)
   const stopListening = useCallback(() => {
     console.log('[OTOIL Sesle Yazma] Dinleme sonlandırıldı.');
     isListeningRef.current = false;
@@ -94,23 +69,22 @@ function VoiceInputButton({
 
     if (recognitionRef.current) {
       try {
+        recognitionRef.current.onstart = null;
         recognitionRef.current.onend = null;
         recognitionRef.current.onerror = null;
         recognitionRef.current.onresult = null;
-        recognitionRef.current.stop();
+        recognitionRef.current.abort(); // Donanımı ve oturumu anında serbest bırakır
       } catch {
         // ignore
       }
       recognitionRef.current = null;
     }
 
-    cleanupAudio();
-
     // Son metni düzgünce formatlayıp kaydet
     if (currentTextRef.current && onChangeRef.current) {
       onChangeRef.current(formatTurkishSentence(currentTextRef.current.trim()));
     }
-  }, [cleanupAudio]);
+  }, []);
 
   // Başka bir ses butonu açılırsa bu butonu otomatik durdur, unmount olunca temizle
   useEffect(() => {
@@ -127,52 +101,7 @@ function VoiceInputButton({
     };
   }, [buttonId, stopListening]);
 
-  // Mikrofon düzeyini ölçen görsel analizör
-  const startAudioMeter = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      audioStreamRef.current = stream;
-
-      const AudioCtx = window.AudioContext || window.webkitAudioContext;
-      if (AudioCtx) {
-        const audioContext = new AudioCtx();
-        audioContextRef.current = audioContext;
-
-        const analyser = audioContext.createAnalyser();
-        analyser.fftSize = 64;
-        const source = audioContext.createMediaStreamSource(stream);
-        source.connect(analyser);
-
-        const dataArray = new Uint8Array(analyser.frequencyBinCount);
-
-        const updateMeter = () => {
-          if (!isListeningRef.current) return;
-          analyser.getByteFrequencyData(dataArray);
-          let sum = 0;
-          for (let i = 0; i < dataArray.length; i++) {
-            sum += dataArray[i];
-          }
-          const avg = sum / dataArray.length;
-          setAudioLevel(Math.min(100, Math.round((avg / 128) * 100)));
-          animationFrameRef.current = requestAnimationFrame(updateMeter);
-        };
-        updateMeter();
-      }
-      return true;
-    } catch (err) {
-      console.warn('[OTOIL Sesle Yazma] Mikrofon izin hatası:', err);
-      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-        setErrorMessage('Mikrofon erişim izni verilmedi. Lütfen adres çubuğundaki kilit simgesinden izin verin.');
-      } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
-        setErrorMessage('Mikrofon cihazı algılanamadı.');
-      } else {
-        setErrorMessage(`Mikrofon açılamadı: ${err.message || err.name}`);
-      }
-      return false;
-    }
-  };
-
-  // Yeni bir SpeechRecognition oturumu oluşturup başlatan fonksiyon (auto-restart için)
+  // Yeni bir SpeechRecognition oturumu oluşturup başlatan fonksiyon
   const startRecognitionSession = useCallback(() => {
     if (!isListeningRef.current) return;
 
@@ -180,9 +109,10 @@ function VoiceInputButton({
     if (!SpeechRecognition) return;
 
     try {
-      // Önceki referans varsa sonlandır
+      // Önceki referans varsa derhal abort ile sonlandır
       if (recognitionRef.current) {
         try {
+          recognitionRef.current.onstart = null;
           recognitionRef.current.onend = null;
           recognitionRef.current.onerror = null;
           recognitionRef.current.onresult = null;
@@ -190,6 +120,7 @@ function VoiceInputButton({
         } catch {
           // ignore
         }
+        recognitionRef.current = null;
       }
 
       const recognition = new SpeechRecognition();
@@ -208,7 +139,7 @@ function VoiceInputButton({
         let currentSessionFinal = '';
         let currentSessionInterim = '';
 
-        for (let i = 0; i < event.results.length; ++i) {
+        for (let i = event.resultIndex || 0; i < event.results.length; ++i) {
           const res = event.results[i];
           const transcript = res[0]?.transcript || '';
           if (res.isFinal) {
@@ -218,13 +149,14 @@ function VoiceInputButton({
           }
         }
 
-        // Genel kesinleşen metne ekle
-        const allFinalSoFar = (
-          accumulatedFinalRef.current + (accumulatedFinalRef.current && currentSessionFinal ? ' ' : '') + currentSessionFinal
-        ).trim();
+        if (currentSessionFinal) {
+          accumulatedFinalRef.current = (
+            accumulatedFinalRef.current + (accumulatedFinalRef.current ? ' ' : '') + currentSessionFinal
+          ).trim();
+        }
 
         const fullSpeech = (
-          allFinalSoFar + (allFinalSoFar && currentSessionInterim ? ' ' : '') + currentSessionInterim
+          accumulatedFinalRef.current + (accumulatedFinalRef.current && currentSessionInterim ? ' ' : '') + currentSessionInterim
         ).trim();
 
         setLiveTranscript(currentSessionInterim || currentSessionFinal);
@@ -251,35 +183,33 @@ function VoiceInputButton({
       recognition.onerror = (event) => {
         console.warn('[OTOIL Sesle Yazma] Hata:', event.error);
         if (event.error === 'not-allowed') {
-          setErrorMessage('Mikrofon erişim izni verilmedi.');
+          setErrorMessage('Mikrofon erişim izni verilmedi. Lütfen tarayıcı ayarlarından izin verin.');
           stopListening();
         } else if (event.error === 'network') {
-          setErrorMessage('Google ses sunucusuna ulaşılamadı (Ağ bağlantısını kontrol edin).');
+          setErrorMessage('Google ses sunucusuna ulaşılamadı (İnternet bağlantısını kontrol edin).');
           stopListening();
         } else if (event.error === 'service-not-allowed') {
-          setErrorMessage('Tarayıcı ses tanıma servisini engelliyor (Brave ayarlarını kontrol edin).');
+          setErrorMessage('Tarayıcı ses tanıma servisini engelliyor.');
           stopListening();
         } else if (event.error === 'audio-capture') {
           setErrorMessage('Mikrofon sesi alınamıyor.');
           stopListening();
         }
-        // 'no-speech' durumunda durma, onend otomatik devam ettirecek
+        // 'no-speech' durumunda kullanıcı sessiz kaldıysa onend tekrar başlatacak
       };
 
       recognition.onend = () => {
         console.log('[OTOIL Sesle Yazma] Oturum onend tetiklendi. isListening:', isListeningRef.current);
-        // Bu oturumda kesinleşenleri kalıcı akümülatöre al
-        if (recognitionRef.current) {
-          // Eğer kullanıcı kapatmadıysa hemen kesintisiz yeni bir oturumla devam et
-          if (isListeningRef.current) {
-            restartTimerRef.current = setTimeout(() => {
-              if (isListeningRef.current) {
-                startRecognitionSession();
-              }
-            }, 100);
-          } else {
-            cleanupAudio();
-          }
+        if (isListeningRef.current) {
+          // Sessizlik nedeniyle durduysa kesintisiz devam etmek için hemen yeniden başlat
+          restartTimerRef.current = setTimeout(() => {
+            if (isListeningRef.current) {
+              startRecognitionSession();
+            }
+          }, 80);
+        } else {
+          setIsListening(false);
+          setIsConnecting(false);
         }
       };
 
@@ -287,17 +217,22 @@ function VoiceInputButton({
       recognition.start();
     } catch (err) {
       console.error('[OTOIL Sesle Yazma] startRecognitionSession hatası:', err);
-      // Hata durumunda yeniden denemeyi dene
-      if (isListeningRef.current) {
-        restartTimerRef.current = setTimeout(() => {
-          if (isListeningRef.current) startRecognitionSession();
-        }, 300);
+      // Hata durumunda state'i sıfırla, buton kilitlenmesin
+      isListeningRef.current = false;
+      setIsListening(false);
+      setIsConnecting(false);
+      recognitionRef.current = null;
+
+      if (err.name === 'NotAllowedError') {
+        setErrorMessage('Mikrofon erişim izni verilmedi.');
+      } else {
+        setErrorMessage('Ses tanıma başlatılamadı. Lütfen tekrar deneyin.');
       }
     }
-  }, [cleanupAudio, stopListening]);
+  }, [stopListening]);
 
-  // Sesle yazmayı başlatma
-  const startListening = async () => {
+  // Sesle yazmayı başlatma (Senkron kullanıcı eylemi içinde kalır - Asenkron await yok)
+  const startListening = () => {
     setErrorMessage('');
     setLiveTranscript('');
 
@@ -318,15 +253,7 @@ function VoiceInputButton({
     baseTextRef.current = (currentTextRef.current || '').trim();
     accumulatedFinalRef.current = '';
 
-    // 1. Önce donanım düzeyinde mikrofon erişimini aç ve ekolayzırı başlat
-    const micOk = await startAudioMeter();
-    if (!micOk) {
-      setIsConnecting(false);
-      isListeningRef.current = false;
-      return;
-    }
-
-    // 2. Ses tanıma oturumunu başlat
+    // Doğrudan senkron olarak oturumu başlat (Kullanıcı jesti / user gesture stack korunur)
     startRecognitionSession();
   };
 
@@ -359,20 +286,11 @@ function VoiceInputButton({
       >
         {isListening ? (
           <>
-            {/* Dinleniyor ve Ses Dalgası (Equalizer) */}
+            {/* Dinleniyor Ses Dalgası Animasyonu (Saf CSS - Donanım çakışması yapmaz) */}
             <span className="flex items-center gap-0.5 h-3 px-0.5">
-              <span
-                className="w-1 bg-white rounded-full transition-all duration-75"
-                style={{ height: `${Math.max(4, Math.min(14, (audioLevel / 100) * 14 + 4))}px` }}
-              />
-              <span
-                className="w-1 bg-white rounded-full transition-all duration-75"
-                style={{ height: `${Math.max(4, Math.min(16, (audioLevel / 100) * 16 + 6))}px` }}
-              />
-              <span
-                className="w-1 bg-white rounded-full transition-all duration-75"
-                style={{ height: `${Math.max(4, Math.min(12, (audioLevel / 100) * 12 + 4))}px` }}
-              />
+              <span className="w-1 bg-white rounded-full h-2.5 animate-pulse" />
+              <span className="w-1 bg-white rounded-full h-3.5 animate-pulse [animation-delay:150ms]" />
+              <span className="w-1 bg-white rounded-full h-2 animate-pulse [animation-delay:300ms]" />
             </span>
             <span className="font-bold tracking-tight text-[11px]">Dinleniyor... (Durdur)</span>
             <svg className="w-3 h-3 ml-0.5 fill-current" viewBox="0 0 24 24">
