@@ -22,6 +22,12 @@ function formatTurkishSentence(text) {
   return formatted;
 }
 
+// iOS ve WebKit tespiti (iPad, iPhone, iPod ve dokunmatik iPad/Mac)
+const isIOS = typeof navigator !== 'undefined' && (
+  /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+);
+
 function VoiceInputButton({
   value = '',
   onChange,
@@ -31,18 +37,20 @@ function VoiceInputButton({
 }) {
   const [isListening, setIsListening] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
+  const [isStopping, setIsStopping] = useState(false);
   const [liveTranscript, setLiveTranscript] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [showHelpModal, setShowHelpModal] = useState(false);
 
   const recognitionRef = useRef(null);
   const isListeningRef = useRef(false);
+  const isStoppingRef = useRef(false);
 
-  const baseTextRef = useRef(''); // Kayıt başladığındaki orijinal metin
-  const accumulatedFinalRef = useRef(''); // Bu oturumdaki kesinleşen cümleler
+  const baseTextRef = useRef(''); // Kayıt başladığındaki mevcut metin
   const currentTextRef = useRef(value);
   const onChangeRef = useRef(onChange);
   const restartTimerRef = useRef(null);
+  const stopSafetyTimerRef = useRef(null);
   const buttonId = useId();
 
   // Değerleri ref'lerde güncel tut (re-render sırasında effect'lerin yeniden tetiklenmesini önler)
@@ -54,9 +62,12 @@ function VoiceInputButton({
     onChangeRef.current = onChange;
   }, [onChange]);
 
-  // Dinlemeyi tamamen sonlandırma (Immediate Hard Stop / Abort)
+  // Dinlemeyi güvenli ve zarif bir şekilde durdurma (Graceful Stop)
+  // WebKit / iOS Safari üzerinde abort() çağrısı donanım ses oturumunu (AVAudioSession)
+  // kilitler ve 2. denemede mikrofonun sessiz kalmasına (zombie state) yol açar.
+  // Bu yüzden stop() kullanılır ve onend olayının oturumu serbest bırakması beklenir.
   const stopListening = useCallback(() => {
-    console.log('[OTOIL Sesle Yazma] Dinleme sonlandırıldı.');
+    console.log('[OTOIL Sesle Yazma] stopListening çağrıldı.');
     isListeningRef.current = false;
     setIsListening(false);
     setIsConnecting(false);
@@ -68,16 +79,33 @@ function VoiceInputButton({
     }
 
     if (recognitionRef.current) {
+      const rec = recognitionRef.current;
+      isStoppingRef.current = true;
+      setIsStopping(true);
+
       try {
-        recognitionRef.current.onstart = null;
-        recognitionRef.current.onend = null;
-        recognitionRef.current.onerror = null;
-        recognitionRef.current.onresult = null;
-        recognitionRef.current.abort(); // Donanımı ve oturumu anında serbest bırakır
-      } catch {
-        // ignore
+        rec.stop();
+      } catch (err) {
+        console.warn('[OTOIL Sesle Yazma] rec.stop hatası:', err);
+        try {
+          rec.abort();
+        } catch {
+          // ignore
+        }
       }
-      recognitionRef.current = null;
+
+      // Güvenlik zaman aşımı: Eğer tarayıcı onend tetiklemezse en geç 400ms içinde temizle
+      if (stopSafetyTimerRef.current) clearTimeout(stopSafetyTimerRef.current);
+      stopSafetyTimerRef.current = setTimeout(() => {
+        if (isStoppingRef.current) {
+          isStoppingRef.current = false;
+          setIsStopping(false);
+          recognitionRef.current = null;
+        }
+      }, 400);
+    } else {
+      isStoppingRef.current = false;
+      setIsStopping(false);
     }
 
     // Son metni düzgünce formatlayıp kaydet
@@ -97,6 +125,8 @@ function VoiceInputButton({
     window.addEventListener('otoil:speech-start', handleGlobalSpeechStart);
     return () => {
       window.removeEventListener('otoil:speech-start', handleGlobalSpeechStart);
+      if (restartTimerRef.current) clearTimeout(restartTimerRef.current);
+      if (stopSafetyTimerRef.current) clearTimeout(stopSafetyTimerRef.current);
       stopListening();
     };
   }, [buttonId, stopListening]);
@@ -109,23 +139,30 @@ function VoiceInputButton({
     if (!SpeechRecognition) return;
 
     try {
-      // Önceki referans varsa derhal abort ile sonlandır
+      // Eğer önceki bir referans hala açıksa güvenle sonlandır
       if (recognitionRef.current) {
         try {
           recognitionRef.current.onstart = null;
           recognitionRef.current.onend = null;
           recognitionRef.current.onerror = null;
           recognitionRef.current.onresult = null;
-          recognitionRef.current.abort();
+          recognitionRef.current.stop();
         } catch {
-          // ignore
+          try {
+            recognitionRef.current.abort();
+          } catch {
+            // ignore
+          }
         }
         recognitionRef.current = null;
       }
 
       const recognition = new SpeechRecognition();
       recognition.lang = 'tr-TR';
-      recognition.continuous = true;
+
+      // iOS WebKit'te continuous: true motor çökmesine ve 2. denemede donmasına yol açar (WebKit Bug 317741).
+      // Bu nedenle iOS/Safari'de continuous = false kullanılır.
+      recognition.continuous = !isIOS;
       recognition.interimResults = true;
       recognition.maxAlternatives = 1;
 
@@ -133,40 +170,41 @@ function VoiceInputButton({
         console.log('[OTOIL Sesle Yazma] SpeechRecognition oturumu aktif.');
         setIsConnecting(false);
         setIsListening(true);
+        isStoppingRef.current = false;
+        setIsStopping(false);
       };
 
       recognition.onresult = (event) => {
-        let currentSessionFinal = '';
-        let currentSessionInterim = '';
+        // Oturumun başından itibaren gelen tüm sonuçları temiz bir şekilde birleştir
+        // Bu sayede hem kelime tekrarı (duplicate) önlenir hem de kesintisiz akış sağlanır
+        let sessionFinal = '';
+        let sessionInterim = '';
 
-        for (let i = event.resultIndex || 0; i < event.results.length; ++i) {
+        for (let i = 0; i < event.results.length; i++) {
           const res = event.results[i];
           const transcript = res[0]?.transcript || '';
           if (res.isFinal) {
-            currentSessionFinal += (currentSessionFinal ? ' ' : '') + transcript.trim();
+            sessionFinal += (sessionFinal ? ' ' : '') + transcript.trim();
           } else {
-            currentSessionInterim += (currentSessionInterim ? ' ' : '') + transcript.trim();
+            sessionInterim += (sessionInterim ? ' ' : '') + transcript.trim();
           }
         }
 
-        if (currentSessionFinal) {
-          accumulatedFinalRef.current = (
-            accumulatedFinalRef.current + (accumulatedFinalRef.current ? ' ' : '') + currentSessionFinal
-          ).trim();
-        }
-
         const fullSpeech = (
-          accumulatedFinalRef.current + (accumulatedFinalRef.current && currentSessionInterim ? ' ' : '') + currentSessionInterim
+          sessionFinal + (sessionFinal && sessionInterim ? ' ' : '') + sessionInterim
         ).trim();
 
-        setLiveTranscript(currentSessionInterim || currentSessionFinal);
+        if (sessionInterim || sessionFinal) {
+          setLiveTranscript(sessionInterim || sessionFinal);
+        }
 
         const cleanSpeech = cleanTurkishPunctuation(fullSpeech);
         const base = baseTextRef.current;
         let combined = '';
 
         if (base && cleanSpeech) {
-          const separator = /[.!?\n]$/.test(base) ? ' ' : (base.endsWith(',') ? ' ' : '. ');
+          const lastChar = base.slice(-1);
+          const separator = /[.!?\n]/.test(lastChar) ? ' ' : (lastChar === ',' ? ' ' : '. ');
           combined = `${base}${separator}${cleanSpeech}`;
         } else if (cleanSpeech) {
           combined = cleanSpeech;
@@ -182,11 +220,19 @@ function VoiceInputButton({
 
       recognition.onerror = (event) => {
         console.warn('[OTOIL Sesle Yazma] Hata:', event.error);
+        if (event.error === 'no-speech') {
+          // Kullanıcı durakladıysa sessizlik normaldir, onend akışı yönetir
+          return;
+        }
+        if (event.error === 'aborted') {
+          // Oturum kullanıcı tarafından durduruldu veya kapatıldı
+          return;
+        }
         if (event.error === 'not-allowed') {
           setErrorMessage('Mikrofon erişim izni verilmedi. Lütfen tarayıcı ayarlarından izin verin.');
           stopListening();
         } else if (event.error === 'network') {
-          setErrorMessage('Google ses sunucusuna ulaşılamadı (İnternet bağlantısını kontrol edin).');
+          setErrorMessage('Google ses sunucusuna ulaşılamadı (İnternet bağlantınızı kontrol edin).');
           stopListening();
         } else if (event.error === 'service-not-allowed') {
           setErrorMessage('Tarayıcı ses tanıma servisini engelliyor.');
@@ -195,21 +241,42 @@ function VoiceInputButton({
           setErrorMessage('Mikrofon sesi alınamıyor.');
           stopListening();
         }
-        // 'no-speech' durumunda kullanıcı sessiz kaldıysa onend tekrar başlatacak
       };
 
       recognition.onend = () => {
-        console.log('[OTOIL Sesle Yazma] Oturum onend tetiklendi. isListening:', isListeningRef.current);
-        if (isListeningRef.current) {
-          // Sessizlik nedeniyle durduysa kesintisiz devam etmek için hemen yeniden başlat
-          restartTimerRef.current = setTimeout(() => {
-            if (isListeningRef.current) {
-              startRecognitionSession();
-            }
-          }, 80);
-        } else {
+        console.log('[OTOIL Sesle Yazma] onend tetiklendi. isListening:', isListeningRef.current, 'isIOS:', isIOS);
+        recognitionRef.current = null;
+        isStoppingRef.current = false;
+        setIsStopping(false);
+
+        // Kullanıcı butona basarak durdurduysa tamamen kapat
+        if (!isListeningRef.current) {
           setIsListening(false);
           setIsConnecting(false);
+          setLiveTranscript('');
+          return;
+        }
+
+        // Kullanıcı henüz durdurmadıysa ve sessizlik nedeniyle onend geldiyse:
+        // iOS Safari'de onend içinde anında start() çağırmak WebKit ses oturumunu kilitler (zombie state)!
+        // Bu yüzden iOS'ta kullanıcı bir cümleyi bitirdiğinde oturumu temizce kapatıyoruz.
+        // Kullanıcı dilediğinde tekrar 'Sesle Yaz' butonuna basarak bir sonraki cümleyi kolayca ekleyebilir.
+        if (isIOS) {
+          isListeningRef.current = false;
+          setIsListening(false);
+          setIsConnecting(false);
+          setLiveTranscript('');
+          if (currentTextRef.current && onChangeRef.current) {
+            onChangeRef.current(formatTurkishSentence(currentTextRef.current.trim()));
+          }
+        } else {
+          // Desktop Chrome / Edge üzerinde sessizlik sonrası yumuşak yeniden başlatma
+          restartTimerRef.current = setTimeout(() => {
+            if (isListeningRef.current) {
+              baseTextRef.current = (currentTextRef.current || '').trim();
+              startRecognitionSession();
+            }
+          }, 120);
         }
       };
 
@@ -217,10 +284,11 @@ function VoiceInputButton({
       recognition.start();
     } catch (err) {
       console.error('[OTOIL Sesle Yazma] startRecognitionSession hatası:', err);
-      // Hata durumunda state'i sıfırla, buton kilitlenmesin
       isListeningRef.current = false;
       setIsListening(false);
       setIsConnecting(false);
+      isStoppingRef.current = false;
+      setIsStopping(false);
       recognitionRef.current = null;
 
       if (err.name === 'NotAllowedError') {
@@ -231,8 +299,13 @@ function VoiceInputButton({
     }
   }, [stopListening]);
 
-  // Sesle yazmayı başlatma (Senkron kullanıcı eylemi içinde kalır - Asenkron await yok)
+  // Sesle yazmayı başlatma (Senkron kullanıcı jesti korunur)
   const startListening = () => {
+    if (isStoppingRef.current) {
+      console.log('[OTOIL Sesle Yazma] Önceki oturum kapatılıyor, lütfen bekleyin.');
+      return;
+    }
+
     setErrorMessage('');
     setLiveTranscript('');
 
@@ -251,13 +324,13 @@ function VoiceInputButton({
 
     // Kayıt başladığındaki mevcut metni sakla
     baseTextRef.current = (currentTextRef.current || '').trim();
-    accumulatedFinalRef.current = '';
 
     // Doğrudan senkron olarak oturumu başlat (Kullanıcı jesti / user gesture stack korunur)
     startRecognitionSession();
   };
 
   const handleToggle = () => {
+    if (isStopping) return;
     if (isListening || isConnecting) {
       stopListening();
     } else {
@@ -273,10 +346,13 @@ function VoiceInputButton({
       <button
         type="button"
         onClick={handleToggle}
-        title={isListening ? 'Kaydı Durdur' : title}
+        disabled={isStopping}
+        title={isListening ? 'Kaydı Durdur' : isStopping ? 'Kapatılıyor...' : title}
         className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold transition-all select-none active:scale-95 ${
           isListening
             ? 'bg-rose-600 hover:bg-rose-700 text-white shadow-md shadow-rose-600/30 ring-2 ring-rose-400/60'
+            : isStopping
+            ? 'bg-amber-600/90 text-white cursor-wait opacity-80'
             : isConnecting
             ? 'bg-amber-500 text-white animate-pulse'
             : isDark
@@ -296,6 +372,14 @@ function VoiceInputButton({
             <svg className="w-3 h-3 ml-0.5 fill-current" viewBox="0 0 24 24">
               <rect x="6" y="6" width="12" height="12" rx="2" />
             </svg>
+          </>
+        ) : isStopping ? (
+          <>
+            <svg className="animate-spin h-3 w-3 text-white" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+            </svg>
+            <span className="text-[11px]">Durduruluyor...</span>
           </>
         ) : isConnecting ? (
           <>
