@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { db, auth } from '../firebaseConfig';
 import { collection, query, onSnapshot, doc, updateDoc, deleteDoc, Timestamp } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
@@ -20,6 +21,18 @@ function BakimMerkezi() {
   const [isUpdating, setIsUpdating] = useState(false);
   const [menuAcik, setMenuAcik] = useState(false);
   const navigate = useNavigate();
+
+  // Modal açıkken arka plandaki sayfanın kaymasını engelle
+  useEffect(() => {
+    if (selectedHizmet || editingHizmet) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [selectedHizmet, editingHizmet]);
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((currentUser) => {
@@ -533,16 +546,17 @@ function BakimMerkezi() {
         )}
 
         {/* Detay Modal */}
-        {selectedHizmet && (
+        {selectedHizmet && createPortal(
           <div 
-            className="fixed inset-0 glass-modal-overlay overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4"
+            className="fixed inset-0 glass-modal-overlay overflow-y-auto h-full w-full z-[100] flex items-center justify-center p-3 sm:p-4"
+            style={{ paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom, 0px))' }}
             onClick={() => setSelectedHizmet(null)}
           >
             <div 
-              className="relative glass-modal rounded-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+              className="relative glass-modal rounded-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="p-6">
+              <div className="p-5 sm:p-6 pb-10">
                 {(() => {
                   const hizmet = filtrelenmisKayitlar.find((h) => h.id === selectedHizmet) || tumKayitlar.find((h) => h.id === selectedHizmet);
                   if (!hizmet) return null;
@@ -661,20 +675,22 @@ function BakimMerkezi() {
                 })()}
               </div>
             </div>
-          </div>
+          </div>,
+          document.body
         )}
 
         {/* Düzenleme Modal */}
-        {editingHizmet && (
+        {editingHizmet && createPortal(
           <div 
-            className="fixed inset-0 glass-modal-overlay overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4"
+            className="fixed inset-0 glass-modal-overlay overflow-y-auto h-full w-full z-[100] flex items-center justify-center p-3 sm:p-4"
+            style={{ paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom, 0px))' }}
             onClick={handleCancelEdit}
           >
             <div 
-              className="relative glass-modal rounded-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto overflow-x-hidden"
+              className="relative glass-modal rounded-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto overflow-x-hidden shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="p-5">
+              <div className="p-5 sm:p-6 pb-8">
                 <div className="flex justify-between items-center mb-5">
                   <h3 className="text-xl font-bold text-slate-800">Kayıt Düzenle</h3>
                   <button onClick={handleCancelEdit} className="text-slate-400 hover:text-slate-600 text-xl font-bold w-8 h-8 flex items-center justify-center rounded-md glass-btn-white">×</button>
@@ -768,7 +784,8 @@ function BakimMerkezi() {
                 </form>
               </div>
             </div>
-          </div>
+          </div>,
+          document.body
         )}
       </main>
     </div>
